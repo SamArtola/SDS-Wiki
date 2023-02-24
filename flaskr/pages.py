@@ -12,3 +12,6 @@ def make_endpoints(app):
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
+    @app.route('/upload')
+    def upload():
+        return render_template('/upload.html')
