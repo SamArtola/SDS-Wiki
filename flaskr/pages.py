@@ -23,3 +23,7 @@ def make_endpoints(app):
     @app.route('/signup')
     def signup():
         return render_template('/signup.html')
+
+    @app.route('/pages')
+    def page_index():
+        return render_template('/page_index.html')
