@@ -4,17 +4,49 @@
 <head>
     <head>
         <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
-        <title>Women in Stem</title>
+        <title>{% block page_name %}Women in Stem{% endblock %}</title>
     </head>
+    <style>
+        body {
+            margin: 0px;
+        }
+        .nav-bar{
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 8px;
+            background: black;
+        }
+        .nav-bar > p > a{
+            padding: 5px;
+            color: white;
+            text-decoration: none;
+        }
+        .nav-bar > p > a:hover{
+            border-radius: 8px;
+            text-decoration: underline;
+        }
+        .content {
+            margin:8px;
+        }
+    </style>
+
 </head>
 
 <body>
     <!-- TODO(Project 1): Implement routes. -->
-    <p style="float: right;"><a href="{{ url_for('upload') }}">Upload</a></p>
-    <div>       
+    <div class="nav-bar">
+    <p><a href="{{ url_for('upload') }}">Upload</a></p>
+    <p><a href="{{ url_for('about') }}">About</a></p>
+    </div>
+
+    <div class="content">
+        {% block content %}  
         <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
         <h1 style="text-align: center; padding:20px">  Notable women in stem </h1>
         <p style="text-align: center;"> This main objective of this website is to list achievements of notable women in stem. </p>
+        {% endblock %}
     </div>
 </body>
 
