@@ -1,14 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>upload</title>
-</head>
-<body>
-    <h3>UPLOAD</h3>
-    <form>
+{% extends "main.html" %}
+
+{% block page_name %}
+Upload
+{% endblock %}
+
+{% block content %}
+
+<div style="text-align: center; padding: 200px 0;">
+    <h1>Upload File</h1>
+    <form action="/">
+        <label for="myFile">Please choose a File to Upload.</label><br><br>
         <input type="file" id="myFile" name="filename">
         <input type="submit" name="Upload">
     </form>    
-</body>
-</html>
+</div>
+
+{% endblock %}
