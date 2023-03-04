@@ -1,7 +1,6 @@
 from flask import render_template, request
-from flaskr.backend import *
-import hashlib
-import logging
+from flaskr.backend import Backend
+
 
 def make_endpoints(app):
 
@@ -22,9 +21,23 @@ def make_endpoints(app):
     def about():
         return render_template('about.html')
     
-    @app.route('/signup')
+    @app.route('/signup', methods =['GET', 'POST'])
     def signup():
-        return render_template('/signup.html')
+        back_end = Backend()
+        display_text = ''
+        
+        if request.method == 'POST':
+            username = request.form['name']
+            password = request.form['pwd']
+            
+            if back_end.check_user(username):
+                display_text = "Ooops, that username is taken."
+
+            else:
+                back_end.sign_up(username, password)
+                display_text = "Successfully registered!"
+
+        return render_template('/signup.html', display_text=display_text)
 
     @app.route('/pages')
     def page_index():
@@ -33,16 +46,13 @@ def make_endpoints(app):
     @app.route('/login', methods = ['GET', 'POST'])
     def login():
         backend = Backend()
-        site_secret = "siam"
 
         if request.method == "POST":
             username = request.form.get("name").lower()
             password = request.form.get("password")
 
-            with_salt = f"{username}{site_secret}{password}"
-            hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
-            signed_in, err = backend.sign_in(username, hashed_password)
-            logging.info((signed_in, err))
+            signed_in, err = backend.sign_in(username, password)
+
         else:
             signed_in, err = False, False
 
