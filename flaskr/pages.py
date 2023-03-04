@@ -1,5 +1,7 @@
-from flask import render_template
-
+from flask import render_template, request
+from flaskr.backend import *
+import hashlib
+import logging
 
 def make_endpoints(app):
 
@@ -27,3 +29,23 @@ def make_endpoints(app):
     @app.route('/pages')
     def page_index():
         return render_template('/page_index.html')
+
+    @app.route('/login', methods = ['GET', 'POST'])
+    def login():
+        backend = Backend()
+        site_secret = "siam"
+
+        if request.method == "POST":
+            username = request.form.get("name").lower()
+            password = request.form.get("password")
+
+            with_salt = f"{username}{site_secret}{password}"
+            hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
+            signed_in, err = backend.sign_in(username, hashed_password)
+            logging.info((signed_in, err))
+        else:
+            signed_in, err = False, False
+
+        if signed_in:
+            return render_template('main.html', signed_in =True, username = username)
+        return render_template('login.html', signed_in = signed_in, err_message = err)
