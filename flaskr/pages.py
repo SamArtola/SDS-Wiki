@@ -1,5 +1,5 @@
-from flask import render_template
-
+from flask import render_template, request
+from flaskr.backend import *
 
 def make_endpoints(app):
 
@@ -20,9 +20,23 @@ def make_endpoints(app):
     def about():
         return render_template('about.html')
     
-    @app.route('/signup')
+    @app.route('/signup', methods =['GET', 'POST'])
     def signup():
-        return render_template('/signup.html')
+        back_end = Backend()
+        display_text = ''
+        
+        if request.method == 'POST':
+            username = request.form['name']
+            password = request.form['pwd']
+            
+            if back_end.check_user(username):
+                display_text = "Ooops, that username is taken."
+
+            else:
+                back_end.sign_up(username, password)
+                display_text = "Successfully registered!"
+
+        return render_template('/signup.html', display_text=display_text)
 
     @app.route('/pages')
     def page_index():

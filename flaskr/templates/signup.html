@@ -5,17 +5,27 @@ Sign Up
 {% endblock %}
 
 {% block content %}
-
+<script>
+    function check_pwd(){
+        var pwd_check = document.getElementById('pwdcheck');
+        if (pwd_check.value != document.getElementById('pwd').value){
+            pwd_check.setCustomValidity('Password mismatch :(')
+        } else{
+            pwd_check.setCustomValidity('');
+        }
+    }
+</script>
 <div style="text-align: center; padding: 200px 0;">
     <h1>Sign Up</h1>
-    <form action="/">
+    <form action="/signup" method="POST">
+        <div class="display_text">{{display_text}}</div><br>
         <label for="name">Username</label><br>
         <input style = width:20%; required type="text" id="name" name="name"><br><br>
         <label for="pwd">Password</label><br>
         <input style = width:20%; required type="password" id="pwd" name="pwd"><br><br>
         <label for="pwdcheck">Re-enter Password</label><br>
-        <input style = width:20%; required type="password" id="pwdcheck" name="pwd"><br><br>
-        <input type="submit" value="Submit">
+        <input style = width:20%; required type="password" id="pwdcheck" name="pwdcheck"><br><br>
+        <input type="submit" name="submit" value="Submit" onclick="check_pwd()">
     </form>
 </div>
 
