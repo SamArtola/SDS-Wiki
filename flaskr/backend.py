@@ -16,12 +16,22 @@ class Backend:
         pass
 
     def get_all_page_names(self):
-        #Instantiates a client
+        '''
+        This method is used to list links to uploaded wiki content.
+        '''
         storage_client = storage.Client()
-        pages = storage_client.list_blobs(self.content_bucket)
-        pass
+        page_names=[]
+        bucket=storage_client.bucket(self.content_bucket)
+        pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
+        for page in pages:
+            name = page.name
+            page_names.append(name.split('uploaded-pages/')[1])
+        return page_names
 
-    def upload(self):
+    def upload(self,):
+        '''
+        This method uploads a users file into the wiki page.
+        '''
         pass
     
     def check_user(self, username):

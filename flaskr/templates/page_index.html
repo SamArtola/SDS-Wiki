@@ -8,7 +8,9 @@ Pages
 
 <div style="text-align: center; padding: 200px 0;">
     <h1>Pages contained in this Wiki</h1>
-    <p> List of All Available Pages...   <p>
+    {% for page in page_list %}
+        <li>{{page}}</li>
+    {%endfor%}    
 </div>
 
 {% endblock %}
