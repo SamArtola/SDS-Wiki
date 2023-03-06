@@ -59,7 +59,7 @@ class Backend:
 
     def sign_in(self, username, password):
         '''
-          Returns if user was able to successfully sign in and 
+          Returns if user was able to successfully sign in and a specific 
           error message if they were not.  
         '''
         storage_client = storage.Client()

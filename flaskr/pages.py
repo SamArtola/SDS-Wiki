@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import render_template, request, session
 from flaskr.backend import Backend
 
 
@@ -34,6 +34,7 @@ def make_endpoints(app):
                 display_text = "Ooops, that username is taken."
 
             else:
+                session['username'] = username
                 back_end.sign_up(username, password)
                 display_text = "Successfully registered!"
 
@@ -57,5 +58,6 @@ def make_endpoints(app):
             signed_in, err = False, False
 
         if signed_in:
-            return render_template('main.html', signed_in =True, username = username)
+            session['username'] = username
+            return render_template('main.html')
         return render_template('login.html', signed_in = signed_in, err_message = err)
