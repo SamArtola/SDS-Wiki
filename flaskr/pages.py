@@ -64,4 +64,5 @@ def make_endpoints(app):
     
     @app.route('/logout')
     def logout():
-        return render_template('login.html', signed_in = False, err = False)
+        session.pop('username', None)
+        return render_template('login.html')

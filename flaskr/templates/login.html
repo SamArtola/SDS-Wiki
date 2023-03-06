@@ -18,9 +18,7 @@ Login
             </div>
             {% if err_message %}
                 <script>
-                    const form_field = document.getElementById("name");
-                    form_field.setCustomValidity("{{ err_message }}")
-                    // alert("{{ err_message }}")
+                    alert("{{ err_message }}")
                 </script>
             {% endif %}
             <form action="/login" method= "POST">
