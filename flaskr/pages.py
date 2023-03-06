@@ -1,7 +1,6 @@
 from flask import render_template, request
 from flaskr.backend import Backend
 
-
 def make_endpoints(app):
 
     # Flask uses the "app.route" decorator to call methods when users
@@ -36,6 +35,7 @@ def make_endpoints(app):
             else:
                 back_end.sign_up(username, password)
                 display_text = "Successfully registered!"
+                return render_template('main.html', signed_in =True, username = username)
 
         return render_template('/signup.html', display_text=display_text)
 
@@ -59,3 +59,7 @@ def make_endpoints(app):
         if signed_in:
             return render_template('main.html', signed_in =True, username = username)
         return render_template('login.html', signed_in = signed_in, err_message = err)
+    
+    @app.route('/logout')
+    def logout():
+        return render_template('login.html', signed_in = False, err = False)
