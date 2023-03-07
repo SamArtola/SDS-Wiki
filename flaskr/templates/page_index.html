@@ -12,7 +12,7 @@ Pages
 
 <div style="text-align: center; padding: 20px 0;">
     {% for page in page_list %}
-        <ul> {{page}} </ul>
+        <ul> <a href="{{url_for('show_wiki',curpage=page)}}">{{page}} </a></ul>
 
     {%endfor%}  
 </div>

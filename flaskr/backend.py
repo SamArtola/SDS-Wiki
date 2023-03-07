@@ -2,6 +2,7 @@
 from google.cloud import storage
 import hashlib,os
 
+
 class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
@@ -14,9 +15,9 @@ class Backend:
     def get_wiki_page(self, name):
         storage_client = storage.Client()
         bucket=storage_client.bucket(self.content_bucket)
-        blob = bucket.blob(name)
-
-        return blob
+        blob = bucket.blob('uploaded-pages/'+name)
+        with blob.open("r") as f:
+            return (f.read())
 
     def get_all_page_names(self):
         '''
@@ -27,12 +28,12 @@ class Backend:
         bucket=storage_client.bucket(self.content_bucket)
         pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
         for page in pages:
-            nombre.append(page.name)
+            nombre.append(page.name.split("uploaded-pages/")[1])
         return nombre
 
     def upload_file(self, file):
         '''
-        This method uploads a users file into the wiki page.
+        This method uploads a users file into the wiki content bucket.
         '''
         storage_client = storage.Client()
         bucket=storage_client.bucket(self.content_bucket)
@@ -97,6 +98,9 @@ class Backend:
     def get_image(self):
         storage_client = storage.Client()
         bucket=storage_client.bucket(self.content_bucket)
-        picture = set(bucket.list_blobs(prefix='About-content/'))
-        return picture
+        picture_lst = list(bucket.list_blobs(prefix='About-content/'))
+        for blob in picture_lst:
+            pic=bucket.get_blob(blob.name)
+
+        return picture_lst
 

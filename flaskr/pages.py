@@ -23,7 +23,9 @@ def make_endpoints(app):
 
     @app.route('/about')
     def about():
-        return render_template('about.html')
+        back=Backend()
+        pics=back.get_image()
+        return render_template('about.html',pics=pics)
     
     @app.route('/signup', methods =['GET', 'POST'])
     def signup():
@@ -49,14 +51,14 @@ def make_endpoints(app):
         page_list=backend.get_all_page_names()
         return render_template('/page_index.html', page_list=page_list)
 
-    '''
-    @app.route('/pages/<pagename>')
-    def show_wiki(pagename):
+  
+    @app.route('/pages/<curpage>')
+    def show_wiki(curpage):
         backend=Backend()
-        page_name=pagename
-        content=backend.get_wiki_page(page_name)
-        return render_template('/Content.html',contents=content,pagename=page_name)             
-    '''
+        page=curpage
+        content=backend.get_wiki_page(page)
+        return render_template('/pages.html',contents=content,pagename=page)             
+
 
     @app.route('/login', methods = ['GET', 'POST'])
     def login():
