@@ -15,6 +15,10 @@ def make_endpoints(app):
     # TODO(Project 1): Implement additional routes according to the project requirements.
     @app.route('/upload', methods = ['GET','POST'])
     def upload():
+        if request.method=="POST":
+            backend=Backend()
+            file=request.files['file']
+            backend.upload_file(file)
         return render_template('/upload.html')
 
     @app.route('/about')
@@ -44,6 +48,15 @@ def make_endpoints(app):
         backend = Backend()
         page_list=backend.get_all_page_names()
         return render_template('/page_index.html', page_list=page_list)
+
+    '''
+    @app.route('/pages/<pagename>')
+    def show_wiki(pagename):
+        backend=Backend()
+        page_name=pagename
+        content=backend.get_wiki_page(page_name)
+        return render_template('/Content.html',contents=content,pagename=page_name)             
+    '''
 
     @app.route('/login', methods = ['GET', 'POST'])
     def login():

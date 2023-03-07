@@ -8,9 +8,9 @@ Upload
 
 <div style="text-align: center; padding: 200px 0;">
     <h1>Upload File</h1>
-    <form action="/">
+    <form action="/upload" method="POST" enctype="multipart/form-data">
         <label for="myFile">Please choose a File to Upload.</label><br><br>
-        <input type="file" id="myFile" name="filename">
+        <input type="file" id="file" name="file">
         <input type="submit" name="Upload">
     </form>    
 </div>

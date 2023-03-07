@@ -1,11 +1,10 @@
 # TODO(Project 1): Implement Backend according to the requirements.
 from google.cloud import storage
-import hashlib
+import hashlib,os
 
 class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
-
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
@@ -13,26 +12,34 @@ class Backend:
         
         
     def get_wiki_page(self, name):
-        pass
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        blob = bucket.blob(name)
+
+        return blob
 
     def get_all_page_names(self):
         '''
         This method is used to list links to uploaded wiki content.
         '''
         storage_client = storage.Client()
-        page_names=[]
+        nombre = []
         bucket=storage_client.bucket(self.content_bucket)
         pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
         for page in pages:
-            name = page.name
-            page_names.append(name.split('uploaded-pages/')[1])
-        return page_names
+            nombre.append(page.name)
+        return nombre
 
-    def upload(self,):
+    def upload_file(self, file):
         '''
         This method uploads a users file into the wiki page.
         '''
-        pass
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        new_file=bucket.blob('uploaded-pages/'+file.filename)
+        file.save(file.filename)
+        new_file.upload_from_filename(file.filename)
+        os.remove(file.filename)
     
     def check_user(self, username):
         '''
@@ -88,5 +95,8 @@ class Backend:
         return False, "User not found"
 
     def get_image(self):
-        pass
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        picture = set(bucket.list_blobs(prefix='About-content/'))
+        return picture
 
