@@ -2,11 +2,14 @@
 from google.cloud import storage
 import hashlib
 
+ #> Ibby: Please add tests
+
 class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
 
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
+         #> Ibby: Have you considered creating the Client here so that its created once instead of everytime a method is called?
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
         self.site_secret = "siam"
@@ -46,10 +49,12 @@ class Backend:
         This object contains the hashed password
         '''
         user_name = username.lower()
+         #> Ibby: This code is also used below (line 70) have you considered using a helper method?
         storage_client = storage.Client()
         bucket = storage_client.bucket(self.user_bucket)
         new_user = bucket.blob('users-data/'+ user_name)
 
+        #> Ibby: This code is also used below (line 73) have you considered creating a helper method for this?
         with_salt = f"{user_name}{self.site_secret}{password}"
         hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
 
