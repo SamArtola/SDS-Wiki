@@ -1,4 +1,4 @@
-{% extends "main.html" %}
+super({% extends "main.html" %})
 
 {% block page_name %}
 Sign Up
@@ -24,8 +24,8 @@ Sign Up
         <label for="pwd">Password</label><br>
         <input style = width:20%; required type="password" id="pwd" name="pwd"><br><br>
         <label for="pwdcheck">Re-enter Password</label><br>
-        <input style = width:20%; required type="password" id="pwdcheck" name="pwdcheck"><br><br>
-        <input type="submit" name="submit" value="Submit" onclick="check_pwd()">
+        <input style = width:20%; required type="password" id="pwdcheck" name="pwdcheck" onkeyup="check_pwd()"><br><br>
+        <input type="submit" name="submit" value="Submit">
     </form>
 </div>
 
