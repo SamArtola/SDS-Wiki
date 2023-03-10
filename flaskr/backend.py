@@ -1,7 +1,6 @@
 # TODO(Project 1): Implement Backend according to the requirements.
 from google.cloud import storage
 import hashlib
-import logging
 
  #> Ibby: Please add tests
 
@@ -54,7 +53,6 @@ class Backend:
         user_blobs = set(self.get_users())
         for blob in user_blobs:
             user_list.add(blob.name.removeprefix('users-data/'))
-        print(user_list)
         if username not in user_list:
             return False
         return True
