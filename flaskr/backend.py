@@ -2,11 +2,14 @@
 from google.cloud import storage
 import hashlib
 
+ #> Ibby: Please add tests
+
 class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
 
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
+        self.storage_client = storage.Client()
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
         self.site_secret = "siam"
@@ -17,12 +20,30 @@ class Backend:
 
     def get_all_page_names(self):
         #Instantiates a client
-        storage_client = storage.Client()
-        pages = storage_client.list_blobs(self.content_bucket)
+        pages = self.storage_client.list_blobs(self.content_bucket)
         pass
 
     def upload(self):
         pass
+
+    def get_users(self):
+        '''
+        This method returns a list of all user blobs.
+        '''
+        bucket = self.storage_client.bucket(self.user_bucket)
+        blobs = bucket.list_blobs(prefix='users-data/')
+
+        return blobs
+        
+    def hash_pwd(self, username, password):
+        '''
+        This method takes in a username and password, and returns the hashed password.
+        '''
+        user_name = username.lower()
+        with_salt = f"{user_name}{self.site_secret}{password}"
+        hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
+
+        return hashed_pwd
     
     def check_user(self, username):
         '''
@@ -30,11 +51,9 @@ class Backend:
         If an account exists with the user name, it returns True, otherwise, it returns False.
         '''
         user_list = set()
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.user_bucket)
-        user_blobs = set(bucket.list_blobs(prefix='users-data/'))
+        user_blobs = set(self.get_users())
         for blob in user_blobs:
-            user_list.add(blob.name.strip('users-data/'))
+            user_list.add(blob.name.removeprefix('users-data/'))
         if username not in user_list:
             return False
         return True
@@ -46,12 +65,9 @@ class Backend:
         This object contains the hashed password
         '''
         user_name = username.lower()
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.user_bucket)
+        bucket = self.storage_client.bucket(self.user_bucket)
         new_user = bucket.blob('users-data/'+ user_name)
-
-        with_salt = f"{user_name}{self.site_secret}{password}"
-        hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
+        hashed_pwd = self.hash_pwd(user_name,password)
 
         with new_user.open("w") as f:
             f.write(hashed_pwd)
@@ -66,8 +82,7 @@ class Backend:
         bucket = storage_client.bucket(self.user_bucket)
         blob_obj = bucket.get_blob('users-data/'+username)
         if blob_obj:
-            with_salt = f"{username}{self.site_secret}{password}"
-            hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
+            hashed_password = self.hash_pwd(username,password)
             content = blob_obj.download_as_text()
             if content == hashed_password:
                 return True, None
@@ -76,4 +91,3 @@ class Backend:
 
     def get_image(self):
         pass
-
