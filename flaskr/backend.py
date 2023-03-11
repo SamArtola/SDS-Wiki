@@ -9,7 +9,7 @@ class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
-         #> Ibby: Have you considered creating the Client here so that its created once instead of everytime a method is called?
+        self.storage_client = storage.Client()
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
         self.site_secret = "siam"
@@ -45,17 +45,34 @@ class Backend:
         new_file.upload_from_filename(file.filename)
         os.remove(file.filename)
     
+    def get_users(self):
+        '''
+        This method returns a list of all user blobs.
+        '''
+        bucket = self.storage_client.bucket(self.user_bucket)
+        blobs = bucket.list_blobs(prefix='users-data/')
+
+        return blobs
+
+    def hash_pwd(self, username, password):
+        '''
+        This method takes in a username and password, and returns the hashed password.
+        '''
+        user_name = username.lower()
+        with_salt = f"{user_name}{self.site_secret}{password}"
+        hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
+
+        return hashed_pwd
+
     def check_user(self, username):
         '''
         This method is used to check if a username is valid.
         If an account exists with the user name, it returns True, otherwise, it returns False.
         '''
         user_list = set()
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.user_bucket)
-        user_blobs = set(bucket.list_blobs(prefix='users-data/'))
+        user_blobs = set(self.get_users())
         for blob in user_blobs:
-            user_list.add(blob.name.strip('users-data/'))
+            user_list.add(blob.name.removeprefix('users-data/'))
         if username not in user_list:
             return False
         return True
@@ -67,14 +84,9 @@ class Backend:
         This object contains the hashed password
         '''
         user_name = username.lower()
-         #> Ibby: This code is also used below (line 70) have you considered using a helper method?
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.user_bucket)
+        bucket = self.storage_client.bucket(self.user_bucket)
         new_user = bucket.blob('users-data/'+ user_name)
-
-        #> Ibby: This code is also used below (line 73) have you considered creating a helper method for this?
-        with_salt = f"{user_name}{self.site_secret}{password}"
-        hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
+        hashed_pwd = self.hash_pwd(user_name,password)
 
         with new_user.open("w") as f:
             f.write(hashed_pwd)
@@ -85,12 +97,12 @@ class Backend:
           Returns if user was able to successfully sign in and a specific 
           error message if they were not.  
         '''
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(self.user_bucket)
-        blobs = bucket.list_blobs(prefix='users-data/')
+        # storage_client = storage.Client()
+        # bucket = storage_client.bucket(self.user_bucket)
+        # blobs = bucket.list_blobs(prefix='users-data/')
+        blobs = self.get_users()
 
-        with_salt = f"{username}{self.site_secret}{password}"
-        hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
+        hashed_password = self.hash_pwd(username,password)
 
         for blob in blobs:
             if blob.name == 'users-data/' + username:
@@ -106,6 +118,6 @@ class Backend:
         picture_lst = list(bucket.list_blobs(prefix='About-content/'))
         for blob in picture_lst:
             pic=bucket.get_blob(blob.name)
-
+            print(pic)
         return picture_lst
 
