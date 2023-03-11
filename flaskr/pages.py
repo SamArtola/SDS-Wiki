@@ -14,14 +14,19 @@ def make_endpoints(app):
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
-    #> Ibby: Write tests for all routes
-    @app.route('/upload')
+    @app.route('/upload', methods = ['GET','POST'])
     def upload():
+        if request.method=="POST":
+            backend=Backend()
+            file=request.files['file']
+            backend.upload_file(file)
         return render_template('/upload.html')
 
     @app.route('/about')
     def about():
-        return render_template('about.html')
+        back=Backend()
+        pics=back.get_image()
+        return render_template('about.html',pics=pics)
     
     @app.route('/signup', methods =['GET', 'POST'])
     def signup():
@@ -47,7 +52,18 @@ def make_endpoints(app):
 
     @app.route('/pages')
     def page_index():
-        return render_template('/page_index.html')
+        backend = Backend()
+        page_list=backend.get_all_page_names()
+        return render_template('/page_index.html', page_list=page_list)
+
+  
+    @app.route('/pages/<curpage>')
+    def show_wiki(curpage):
+        backend=Backend()
+        page=curpage
+        content=backend.get_wiki_page(page)
+        return render_template('/pages.html',contents=content,pagename=page)             
+
 
      #> Ibby: Same comment as above re: splitting into login_get and login_post
     @app.route('/login', methods = ['GET', 'POST'])

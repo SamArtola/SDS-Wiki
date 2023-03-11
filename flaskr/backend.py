@@ -1,13 +1,13 @@
 # TODO(Project 1): Implement Backend according to the requirements.
 from google.cloud import storage
-import hashlib
+import hashlib,os
+
 
  #> Ibby: Please add tests
 
 class Backend:
     #bucket_name = "wikis-content" 
     #bucket_name = "user-pw-bucket"
-
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
         self.storage_client = storage.Client()
         self.user_bucket = user_bucket
@@ -16,16 +16,35 @@ class Backend:
         
         
     def get_wiki_page(self, name):
-        pass
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        blob = bucket.blob('uploaded-pages/'+name)
+        with blob.open("r") as f:
+            return (f.read())
 
     def get_all_page_names(self):
-        #Instantiates a client
-        pages = self.storage_client.list_blobs(self.content_bucket)
-        pass
+        '''
+        This method is used to list links to uploaded wiki content.
+        '''
+        storage_client = storage.Client()
+        nombre = []
+        bucket=storage_client.bucket(self.content_bucket)
+        pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
+        for page in pages:
+            nombre.append(page.name.split("uploaded-pages/")[1])
+        return nombre
 
-    def upload(self):
-        pass
-
+    def upload_file(self, file):
+        '''
+        This method uploads a users file into the wiki content bucket.
+        '''
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        new_file=bucket.blob('uploaded-pages/'+file.filename)
+        file.save(file.filename)
+        new_file.upload_from_filename(file.filename)
+        os.remove(file.filename)
+    
     def get_users(self):
         '''
         This method returns a list of all user blobs.
@@ -34,6 +53,7 @@ class Backend:
         blobs = bucket.list_blobs(prefix='users-data/')
 
         return blobs
+
     def hash_pwd(self, username, password):
         '''
         This method takes in a username and password, and returns the hashed password.
@@ -43,7 +63,7 @@ class Backend:
         hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
 
         return hashed_pwd
-    
+
     def check_user(self, username):
         '''
         This method is used to check if a username is valid.
@@ -93,4 +113,11 @@ class Backend:
         return False, "User not found"
 
     def get_image(self):
-        pass
+        storage_client = storage.Client()
+        bucket=storage_client.bucket(self.content_bucket)
+        picture_lst = list(bucket.list_blobs(prefix='About-content/'))
+        for blob in picture_lst:
+            pic=bucket.get_blob(blob.name)
+            print(pic)
+        return picture_lst
+
