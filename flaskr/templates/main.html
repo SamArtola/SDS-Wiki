@@ -7,6 +7,7 @@
         <title>{% block page_name %}Women in Stem{% endblock %}</title>
     </head>
     <link rel=”stylesheet” href=”https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css”/>
+
     <style>
         body {
             margin: 0px;
@@ -31,6 +32,19 @@
 
         .content {
             margin:8px;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+        flex: 30%;
+        padding: 10px;
+        height: 250px;
+        text-align: center;
+        justify-content: center;
+        flex-direction: column;
         }
     </style>
 
@@ -61,10 +75,23 @@
     <div class="content">
         {% block content %}  
         <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
-        <div style= "height:450px; align-items:center; display:flex; justify-content: center; background-color:aliceblue">
-        <h1 style="text-align: center; padding:20px; font-size:70px;">  Notable women in stem </h1>
+        <div style= "height:600px; align-items:center; display:flex; justify-content: center; background-color:aliceblue; flex-direction: column;">
+            <h1 style="text-align: center; padding:20px; font-size:70px;">  Notable women in stem </h1>
+            <p style="text-align: center;"> This main objective of this website is to list achievements of notable women in stem. </p>
         </div>
-        <p style="text-align: center;"> This main objective of this website is to list achievements of notable women in stem. </p>
+        
+        <div class = "container" style = "margin:20px;">
+            <div class="row">
+                <div class = "column">
+                    <div>
+                        
+                    </div>
+                </div>
+                <div class = "column"> av</div>
+                <div class = "column"> ab</div>
+            </div>
+
+        </div>
         {% endblock %}
     </div>
 </body>

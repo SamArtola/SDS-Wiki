@@ -64,17 +64,14 @@ class Backend:
         '''
         storage_client = storage.Client()
         bucket = storage_client.bucket(self.user_bucket)
-        blobs = bucket.list_blobs(prefix='users-data/')
-
-        with_salt = f"{username}{self.site_secret}{password}"
-        hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
-
-        for blob in blobs:
-            if blob.name == 'users-data/' + username:
-                with blob.open("r") as content:
-                    if content.read() == hashed_password:
-                        return True, None
-                    return False, "Wrong password"
+        blob_obj = bucket.get_blob('users-data/'+username)
+        if blob_obj:
+            with_salt = f"{username}{self.site_secret}{password}"
+            hashed_password = hashlib.blake2b(with_salt.encode()).hexdigest()
+            content = blob_obj.download_as_text()
+            if content == hashed_password:
+                return True, None
+            return False, "Wrong password"
         return False, "User not found"
 
     def get_image(self):
