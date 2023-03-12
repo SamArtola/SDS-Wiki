@@ -16,8 +16,7 @@ class Backend:
         
         
     def get_wiki_page(self, name):
-        storage_client = storage.Client()
-        bucket=storage_client.bucket(self.content_bucket)
+        bucket=self.storage_client.bucket(self.content_bucket)
         blob = bucket.blob('uploaded-pages/'+name)
         with blob.open("r") as f:
             return (f.read())
@@ -26,9 +25,8 @@ class Backend:
         '''
         This method is used to list links to uploaded wiki content.
         '''
-        storage_client = storage.Client()
         nombre = []
-        bucket=storage_client.bucket(self.content_bucket)
+        bucket=self.storage_client.bucket(self.content_bucket)
         pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
         for page in pages:
             nombre.append(page.name.split("uploaded-pages/")[1])
@@ -38,8 +36,7 @@ class Backend:
         '''
         This method uploads a users file into the wiki content bucket.
         '''
-        storage_client = storage.Client()
-        bucket=storage_client.bucket(self.content_bucket)
+        bucket=self.storage_client.bucket(self.content_bucket)
         new_file=bucket.blob('uploaded-pages/'+file.filename)
         file.save(file.filename)
         new_file.upload_from_filename(file.filename)

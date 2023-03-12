@@ -9,8 +9,7 @@ def make_endpoints(app):
     @app.route("/")
     def home():
         #> Ibby: You can remove TODO comments that are completed
-        # TODO(Checkpoint Requirement 2 of 3): Change this to use render_template
-        # to render main.html on the home page.
+
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
@@ -24,9 +23,8 @@ def make_endpoints(app):
 
     @app.route('/about')
     def about():
-        back=Backend()
-        pics=back.get_image()
-        return render_template('about.html',pics=pics)
+        #back=Backend()
+        return render_template('about.html')
     
     @app.route('/signup', methods =['GET', 'POST'])
     def signup():
