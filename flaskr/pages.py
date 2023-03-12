@@ -1,9 +1,9 @@
-from flask import render_template, request, session
+from flask import render_template, request, session, redirect, url_for
 from flaskr.backend import Backend
 
  #> Ibby: Please add method-level comments for all public methods
 def make_endpoints(app):
-
+    back_end = Backend()
     # Flask uses the "app.route" decorator to call methods when users
     # go to a specific route on the project's website.
     @app.route("/")
@@ -26,7 +26,7 @@ def make_endpoints(app):
     @app.route('/signup', methods =['GET', 'POST'])
     def signup():
         #> Ibby: Have you considered creating the backed once, in the constructor (__init__) instead of everytime this is called? It could be used in `login` as well
-        back_end = Backend()
+        # back_end = Backend() // Back end already created in constructor - Angel
         display_text = ''
         
     #> Ibby: This code will be easier to understand at a glance if its split into two. `signup_get` for 'GET' and `signup_post` for 'POST'
@@ -49,26 +49,35 @@ def make_endpoints(app):
     def page_index():
         return render_template('/page_index.html')
 
-     #> Ibby: Same comment as above re: splitting into login_get and login_post
-    @app.route('/login', methods = ['GET', 'POST'])
-    def login():
-        backend = Backend()
+    @app.route('/login')
+    def login_get():
+        return render_template('login.html')
 
-        if request.method == "POST":
-            username = request.form.get("name").lower()
-            password = request.form.get("password")
+    @app.route('/login', methods = ['POST'])
+    def login_post():
+        username = request.form.get("name").lower()
+        password = request.form.get("password")
 
-            signed_in, err = backend.sign_in(username, password)
-
-        else:
-            signed_in, err = False, False
+        signed_in, err = back_end.sign_in(username, password)
 
         if signed_in:
             session['username'] = username
-            return render_template('main.html')
-        return render_template('login.html', signed_in = signed_in, err_message = err)
+            return redirect(url_for('home'))
+        return render_template('login.html', err_message = err)
     
     @app.route('/logout')
     def logout():
         session.pop('username', None)
-        return render_template('login.html')
+        return redirect(url_for('login_get'))
+
+    @app.route('/pages/scholarships')
+    def scholarships_page():
+        return render_template('/scholarships.html')
+    
+    @app.route('/pages/opportunities')
+    def opportunities_page():
+        return render_template('/opportunities.html')
+
+    @app.route('/pages/joy_buolamwini')
+    def joy_buolamwini_page():
+        return render_template('/joy_buolamwini.html')
