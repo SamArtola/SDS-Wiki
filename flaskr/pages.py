@@ -9,7 +9,6 @@ def make_endpoints(app):
     @app.route("/")
     def home():
         #> Ibby: You can remove TODO comments that are completed
-
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
@@ -23,28 +22,33 @@ def make_endpoints(app):
 
     @app.route('/about')
     def about():
-        #back=Backend()
-        return render_template('about.html')
+        back=Backend()
+        pics=back.get_image()
+        return render_template('about.html',pics=pics)
+
+    @app.route('/signup', methods =['GET'])
+    def signup_get():
+        return render_template('/signup.html')
     
-    @app.route('/signup', methods =['GET', 'POST'])
-    def signup():
-        #> Ibby: Have you considered creating the backed once, in the constructor (__init__) instead of everytime this is called? It could be used in `login` as well
+    @app.route('/signup', methods =['POST'])
+    def signup_post():
         back_end = Backend()
         display_text = ''
-        
-    #> Ibby: This code will be easier to understand at a glance if its split into two. `signup_get` for 'GET' and `signup_post` for 'POST'
-        if request.method == 'POST':
-            username = request.form['name']
-            password = request.form['pwd']
-            
-            if back_end.check_user(username):
-                display_text = "Ooops, that username is taken."
 
-            else:
-                session['username'] = username
-                back_end.sign_up(username, password)
-                display_text = "Successfully registered!"
-                return render_template('main.html', signed_in =True, username = username)
+        username = request.form['name']
+        password = request.form['pwd']
+
+        if not username or not password:
+            display_text = "Please fill all required fields"
+            
+        elif back_end.check_user(username):
+            display_text = "Ooops, that username is taken."
+
+        else:
+            session['username'] = username
+            back_end.sign_up(username, password)
+            display_text = "Successfully registered!"
+            return render_template('main.html', signed_in =True, username = username)
 
         return render_template('/signup.html', display_text=display_text)
 
@@ -54,7 +58,6 @@ def make_endpoints(app):
         page_list=backend.get_all_page_names()
         return render_template('/page_index.html', page_list=page_list)
 
-  
     @app.route('/pages/<curpage>')
     def show_wiki(curpage):
         backend=Backend()
@@ -62,6 +65,13 @@ def make_endpoints(app):
         content=backend.get_wiki_page(page)
         return render_template('/pages.html',contents=content,pagename=page)             
 
+    @app.route('/quotes')
+    def quotes():
+        return render_template('/quotes.html')
+    
+    @app.route('/kathjohn')
+    def kathjohn():
+        return render_template('/kathjohn.html')
 
      #> Ibby: Same comment as above re: splitting into login_get and login_post
     @app.route('/login', methods = ['GET', 'POST'])
