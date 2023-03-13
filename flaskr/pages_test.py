@@ -2,7 +2,6 @@ from flaskr import create_app
 from unittest.mock import patch, MagicMock, Mock
 from flask import session
 from flaskr.backend import Backend 
-from flaskr.backend import Backend
 import pytest
 from google.cloud import storage
 
@@ -19,8 +18,15 @@ def app():
 def client(app):
     return app.test_client()
 
+@pytest.fixture
+def mock_get_all_page_names():
+    with patch('flaskr.backend.Backend.get_all_page_names') as mock_get_all_page_names: 
+        mock_instance=MagicMock()
+        mock_instance.get_all_page_names.return_value = ['Page1','Page2']
+        mock_get_all_page_names.return_value=mock_instance
+
+
 def test_home_page(client):
-    
     resp = client.get("/")
     assert resp.status_code == 200
     assert b"Notable women in stem" in resp.data
@@ -99,7 +105,7 @@ def test_joy_buolamwini_page(client):
     assert b"Dr. Joy Buolamwini, recognized by Fortune Magazine" in resp.data
 
 def test_page_index(client,mock_get_all_page_names):
-        mock_get_all_page_names()
+        mock_get_all_page_names
         
         resp=client.get("/pages")
         assert resp.status_code == 200
@@ -119,8 +125,12 @@ def test_about(client):
     assert b"About this Wiki" in resp.data
 
 def test_show_wiki(client):
-    resp=client.get("/pages")
-    assert resp.status_code == 200   
+    file="test file"
+    page_name="testing"
+    with patch("flaskr.backend.Backend.get_wiki_page", return_value=file):
+        resp = client.get(f"/pages/<{page_name}>")
+        assert resp.status_code == 200
+        assert file in resp.data.decode("utf-8")   
 
 def test_quotes(client):
     resp = client.get("/quotes")

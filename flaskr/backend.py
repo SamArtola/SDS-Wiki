@@ -44,7 +44,11 @@ class Backend:
         bucket=self.storage_client.bucket(self.content_bucket)
         pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
         for page in pages:
-            nombre.append(page.name.split("uploaded-pages/")[1])
+            name = page.name.split("uploaded-pages/")[1]
+            if name == '':
+                continue
+            else:
+                nombre.append(page.name.split("uploaded-pages/")[1])
         return nombre
 
     def upload_file(self, file):

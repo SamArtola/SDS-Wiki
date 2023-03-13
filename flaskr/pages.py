@@ -15,7 +15,6 @@ def make_endpoints(app):
             Returns:
                 A template rendered from the main.html file to the assigned '/' route.
         '''
-        
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.

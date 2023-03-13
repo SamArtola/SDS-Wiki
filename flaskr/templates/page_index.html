@@ -12,7 +12,7 @@ Katherine Johnson
 
 <div style="text-align: center; padding: 20px 0;">
     {% for page in page_list %}
-        <ul> <a href="{{url_for('show_wiki',curpage=page)}}">{{page}} </a></ul>
+        <a href="{{url_for('show_wiki',curpage=page)}}">{{page}} </a><br><br>
     {%endfor%}  
     <p><a href="{{ url_for('joy_buolamwini_page') }}"> Notable Woman: Joy Buolamwini</p>
     <p><a href="{{ url_for('scholarships_page') }}"> Scholarships </p>
