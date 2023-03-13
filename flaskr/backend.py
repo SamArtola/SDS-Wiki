@@ -1,17 +1,32 @@
-# TODO(Project 1): Implement Backend according to the requirements.
 from google.cloud import storage
 import hashlib,os
 
-
- #> Ibby: Please add tests
-
 class Backend:
-    #bucket_name = "wikis-content" 
-    #bucket_name = "user-pw-bucket"
+    '''
+        Backend class connects our web application with our google cloud storage.
+
+        The Backend class functions to retrieve the web application pages and images from the google cloud storage, 
+        uploads files to the google cloud storage, authenticates a user who is trying to log in or sign up.
+
+        Attributes:
+        storage_client: Initializes the google cloud storage client
+        user_bucket: GCS bucket that stores users passwords
+        content_bucket: GCS bucket that stores the application contents
+        bucket_prefix: Attribute variable that stores the name of user data folder which contains users' passwords
+        site_secret: Site secret used in hashing users' passwords
+    '''
     def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
+
+        ''' Initializes the instance of the backend class with the names of buckets entered.
+        Args:
+          user_bucket: This stands for the GCS bucket where we store users sensitive information such as passwords.
+          content_bucket: This stands for the GCS bucket where we store the web application content.
+    
+        '''
         self.storage_client = storage.Client()
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
+        self.bucket_prefix = "users-data/"
         self.site_secret = "siam"
         
         
@@ -47,10 +62,10 @@ class Backend:
         This method returns a list of all user blobs.
         '''
         bucket = self.storage_client.bucket(self.user_bucket)
-        blobs = bucket.list_blobs(prefix='users-data/')
+        blobs = bucket.list_blobs(prefix=self.bucket_prefix)
 
         return blobs
-
+        
     def hash_pwd(self, username, password):
         '''
         This method takes in a username and password, and returns the hashed password.
@@ -69,7 +84,7 @@ class Backend:
         user_list = set()
         user_blobs = set(self.get_users())
         for blob in user_blobs:
-            user_list.add(blob.name.removeprefix('users-data/'))
+            user_list.add(blob.name.removeprefix(self.bucket_prefix))
         if username not in user_list:
             return False
         return True
@@ -82,7 +97,7 @@ class Backend:
         '''
         user_name = username.lower()
         bucket = self.storage_client.bucket(self.user_bucket)
-        new_user = bucket.blob('users-data/'+ user_name)
+        new_user = bucket.blob(self.bucket_prefix + user_name)
         hashed_pwd = self.hash_pwd(user_name,password)
 
         with new_user.open("w") as f:
@@ -91,22 +106,27 @@ class Backend:
 
     def sign_in(self, username, password):
         '''
-          Returns if user was able to successfully sign in and a specific 
-          error message if they were not.  
+          Sign_in method performs user login authentication.
+
+          Searches the google cloud storage user bucket for a blob whose name matches the username entered by the user,
+          if it exists, it hashes the password passed in by the user and checks if that hashed password matches
+          the one saved in that blob.
+
+          Args:
+            username: username passed in by the user
+            password: password passed in by the user
+
+          Returns:
+            A boolean indicating if the sign in was successful and an error message if the sign in was not successful. 
         '''
-        # storage_client = storage.Client()
-        # bucket = storage_client.bucket(self.user_bucket)
-        # blobs = bucket.list_blobs(prefix='users-data/')
-        blobs = self.get_users()
-
-        hashed_password = self.hash_pwd(username,password)
-
-        for blob in blobs:
-            if blob.name == 'users-data/' + username:
-                with blob.open("r") as content:
-                    if content.read() == hashed_password:
-                        return True, None
-                    return False, "Wrong password"
+        bucket = self.storage_client.bucket(self.user_bucket)
+        blob_obj = bucket.get_blob(f"{self.bucket_prefix}{username}")
+        if blob_obj:
+            hashed_password = self.hash_pwd(username,password)
+            content = blob_obj.download_as_text()
+            if content == hashed_password:
+                return True, None
+            return False, "Wrong password"
         return False, "User not found"
 
     #Fix up to actually retrieve from bucket
@@ -118,4 +138,3 @@ class Backend:
             pic=bucket.get_blob(blob.name)
             print(pic)
         return picture_lst
-

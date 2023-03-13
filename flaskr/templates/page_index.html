@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 
 {% block page_name %}
-Pages
+Katherine Johnson
 {% endblock %}
 
 {% block content %}
@@ -13,8 +13,11 @@ Pages
 <div style="text-align: center; padding: 20px 0;">
     {% for page in page_list %}
         <ul> <a href="{{url_for('show_wiki',curpage=page)}}">{{page}} </a></ul>
-
     {%endfor%}  
+    <p><a href="{{ url_for('joy_buolamwini_page') }}"> Notable Woman: Joy Buolamwini</p>
+    <p><a href="{{ url_for('scholarships_page') }}"> Scholarships </p>
+    <p><a href="{{ url_for('opportunities_page') }}"> Opportunities </p>
+        <a href="{{url_for('quotes')}}">Quotes</a><br><br>
+        <a href="{{url_for('kathjohn')}}">Katherine Johnson</a>
 </div>
-
 {% endblock %}
