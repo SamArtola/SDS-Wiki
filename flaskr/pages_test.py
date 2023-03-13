@@ -74,7 +74,6 @@ def test_login_successful_displays_user(mock_backend, mock_storage, client):
         assert session['username'] == "username"
     assert b"Hi, username" in resp.data
     assert b"Login" not in resp.data
-    assert b"logout"
 
 def test_logout(client):
     with client.session_transaction() as session:
