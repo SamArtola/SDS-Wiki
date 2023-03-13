@@ -109,6 +109,7 @@ class Backend:
                     return False, "Wrong password"
         return False, "User not found"
 
+    #Fix up to actually retrieve from bucket
     def get_image(self):
         storage_client = storage.Client()
         bucket=storage_client.bucket(self.content_bucket)
