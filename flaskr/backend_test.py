@@ -1,3 +1,4 @@
+import pytest
 from flaskr.backend import Backend
 import pytest, hashlib
 from unittest.mock import patch, MagicMock, Mock

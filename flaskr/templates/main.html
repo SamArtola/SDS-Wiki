@@ -51,8 +51,13 @@
         <p><a href="{{ url_for('upload') }}">Upload</a></p>
         <p><a href="{{ url_for('logout') }}">Logout</a></p>
         {% else %}
+<<<<<<< HEAD
         <p><a href="{{ url_for('signup') }}">Sign Up</a></p>
         <p><a href="{{ url_for('login_get') }}">Login</a></p>
+=======
+        <p><a href="{{ url_for('signup_get') }}">Sign Up</a></p>
+        <p><a href="{{ url_for('login') }}">Login</a></p>
+>>>>>>> 8db62eca1d5fc8066b5fbebc1ee1049600a713e2
         {% endif %}
     </div>
     {% endblock %}

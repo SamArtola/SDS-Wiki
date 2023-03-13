@@ -121,4 +121,35 @@ def test_about(client):
 
 def test_show_wiki(client):
     resp=client.get("/pages")
-    assert resp.status_code == 200    
+    assert resp.status_code == 200   
+
+def test_quotes(client):
+    resp = client.get("/quotes")
+    assert resp.status_code == 200
+    assert b"Nichelle Nichols" in resp.data
+
+def test_kathjohn(client):
+    resp = client.get("/kathjohn")
+    assert resp.status_code == 200
+    assert b"Spacecraft Controls Branch" in resp.data
+
+def test_signup_get(client):
+    resp = client.get("/signup")
+    assert resp.status_code == 200
+    assert b"Re-enter Password" in resp.data
+
+def test_signup_post(client):
+    resp = client.post("/signup", data = {'name': 'Mayo', 'pwd': 'abc'})
+    assert resp.status_code == 200
+    assert b"Hi, Mayo" in resp.data
+
+def test_signup_post_incomplete_form(client):
+    resp = client.post("/signup", data = {'name': 'Mayo', 'pwd': ''})
+    assert resp.status_code == 200
+    assert b"Please fill all required fields" in resp.data
+
+@patch("flaskr.backend.Backend.check_user", return_value = True)
+def test_signup_user_exist(mock_backend,client):
+    resp = client.post("/signup", data = {'name': 'Mayo', 'pwd': 'abc'})
+    mock_backend.check_user()
+    assert b"Ooops, that username is taken." in resp.data
