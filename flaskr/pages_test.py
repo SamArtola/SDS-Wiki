@@ -2,7 +2,9 @@ from flaskr import create_app
 from unittest.mock import patch, MagicMock, Mock
 from flask import session
 from flaskr.backend import Backend 
+from flaskr.backend import Backend
 import pytest
+from google.cloud import storage
 
 # See https://flask.palletsprojects.com/en/2.2.x/testing/ 
 # for more info on testing
@@ -17,15 +19,12 @@ def app():
 def client(app):
     return app.test_client()
 
-
-# TODO(Checkpoint (groups of 4 only) Requirement 4): Change test to
-# match the changes made in the other Checkpoint Requirements.
 def test_home_page(client):
+    
     resp = client.get("/")
     assert resp.status_code == 200
     assert b"Notable women in stem" in resp.data
 
-# TODO(Project 1): Write tests for other routes.
 def test_login_page_get(client):
     resp = client.get("/login")
     assert resp.status_code == 200
@@ -74,6 +73,15 @@ def test_login_successful_displays_user(mock_backend, mock_storage, client):
         }, follow_redirects=True)
         assert session['username'] == "username"
     assert b"Hi, username" in resp.data
+    assert b"Login" not in resp.data
+    assert b"logout"
+
+def test_logout(client):
+    with client.session_transaction() as session:
+        session["username"] = "username"
+    resp = client.get("/logout", follow_redirects=True)
+    assert not b"Hi, username" in resp.data
+    assert resp.request.path == "/login"
 
 def test_scholarship_page(client):
     resp = client.get("/pages/scholarships")
@@ -90,3 +98,27 @@ def test_joy_buolamwini_page(client):
     print(resp.data)
     assert resp.status_code == 200
     assert b"Dr. Joy Buolamwini, recognized by Fortune Magazine" in resp.data
+
+def test_page_index(client,mock_get_all_page_names):
+        mock_get_all_page_names()
+        
+        resp=client.get("/pages")
+        assert resp.status_code == 200
+        assert b'Pages contained in this Wiki'in resp.data
+        #assert b'<ul>Page1</ul>' in resp.data
+        #assert b'Page2' in resp.data
+        #mock_get_all_page_names.assert_called_once_with()
+
+def test_upload(client):
+    resp=client.get("/upload")
+    assert resp.status_code == 200
+    assert b"Upload" in resp.data
+
+def test_about(client):
+    resp=client.get("/about")
+    assert resp.status_code == 200
+    assert b"About this Wiki" in resp.data
+
+def test_show_wiki(client):
+    resp=client.get("/pages")
+    assert resp.status_code == 200    

@@ -1,6 +1,7 @@
 from flask import render_template, request, session, redirect, url_for
 from flaskr.backend import Backend
 
+
  #> Ibby: Please add method-level comments for all public methods
 def make_endpoints(app):
     back_end = Backend()
@@ -8,19 +9,27 @@ def make_endpoints(app):
     # go to a specific route on the project's website.
     @app.route("/")
     def home():
-        #> Ibby: You can remove TODO comments that are completed
-        # TODO(Checkpoint Requirement 2 of 3): Change this to use render_template
-        # to render main.html on the home page.
+        '''
+            Home function renders the main.html to the index route "/" when the Flask API call is a GET method.
+
+            Returns:
+                A template rendered from the main.html file to the assigned '/' route.
+        '''
+        
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
-    #> Ibby: Write tests for all routes
-    @app.route('/upload')
+    @app.route('/upload', methods = ['GET','POST'])
     def upload():
+        if request.method=="POST":
+            backend=Backend()
+            file=request.files['file']
+            backend.upload_file(file)
         return render_template('/upload.html')
 
     @app.route('/about')
     def about():
+        #back=Backend()
         return render_template('about.html')
     
     @app.route('/signup', methods =['GET', 'POST'])
@@ -47,14 +56,43 @@ def make_endpoints(app):
 
     @app.route('/pages')
     def page_index():
-        return render_template('/page_index.html')
+        backend = Backend()
+        page_list=backend.get_all_page_names()
+        return render_template('/page_index.html', page_list=page_list)
+
+  
+    @app.route('/pages/<curpage>')
+    def show_wiki(curpage):
+        backend=Backend()
+        page=curpage
+        content=backend.get_wiki_page(page)
+        return render_template('/pages.html',contents=content,pagename=page)             
+
 
     @app.route('/login')
     def login_get():
+        """
+            Login_get function renders the login.html to the assigned "/login" when the Flask API call is a GET method.
+
+            Returns:
+                A template rendered from the login.html file to the assigned "/login" route.
+        """
         return render_template('login.html')
 
     @app.route('/login', methods = ['POST'])
     def login_post():
+        """
+            Login_post function authenticates a user and renders an html file to the assigned route when the Flask API call is a POST method.
+
+            Login_post retrieves the username and password of a user submitted in the html form rendered on the "/login" route,
+            authenticates the user by calling the sign_in fucntion from the Backend class, and returns a specific html template and passes a
+            variable to the assigned route depending on if the user is successful or not.
+
+            Returns:
+                If the user successfully logs in, redirects the user to the home page, route "/"
+                If the user is unsucessful, renders the template for the login.html to the "/login" route and passes the error message
+                to that route.
+        """
         username = request.form.get("name").lower()
         password = request.form.get("password")
 
@@ -67,17 +105,45 @@ def make_endpoints(app):
     
     @app.route('/logout')
     def logout():
+        """
+            Logout function pops the username from the flask session and redirects the user 
+            to the login page when the Flask API call is a GET method.
+
+            Returns:
+                
+        """
         session.pop('username', None)
         return redirect(url_for('login_get'))
 
     @app.route('/pages/scholarships')
     def scholarships_page():
+        '''
+            Scholarships_page function renders the scholarships.html to the '/pages/scholarships' route 
+            when the Flask API call is a GET method.
+
+            Returns:
+                A template rendered from the scholarships.html file to the assigned '/pages/scholarship' route.
+        '''
         return render_template('/scholarships.html')
     
     @app.route('/pages/opportunities')
     def opportunities_page():
+        '''
+            Opportunities_page function renders the opportunities.html to the '/pages/opportunities' route 
+            when the Flask API call is a GET method.
+
+            Returns:
+                A template rendered from the opportunities.html file to the assigned '/pages/opportunities' route.
+        '''
         return render_template('/opportunities.html')
 
     @app.route('/pages/joy_buolamwini')
     def joy_buolamwini_page():
+        '''
+            Joy_buolamwini_page function renders the joy_buolamwini.html to the '/pages/joy_buolamwini' route
+            when the Flask API call is a GET method.
+
+            Returns:
+                A template rendered from the joy_buolamwini.html file to the assigned '/pages/joy_buolamwini' route.
+        '''
         return render_template('/joy_buolamwini.html')
