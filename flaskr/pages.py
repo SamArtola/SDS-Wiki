@@ -20,14 +20,17 @@ def make_endpoints(app):
     # TODO(Project 1): Implement additional routes according to the project requirements.
     @app.route('/upload', methods = ['GET','POST'])
     def upload():
+        #Ibby> Consider splitting into separate methods for get and post
         if request.method=="POST":
             backend=Backend()
             file=request.files['file']
             backend.upload_file(file)
+            #>Ibby consider passing in the page header name instead of defining it in the template.
         return render_template('/upload.html')
 
     @app.route('/about')
     def about():
+        #>Ibby Use the backend already in the class
         back=Backend()
         pics=back.get_image()
         return render_template('about.html',pics=pics)
