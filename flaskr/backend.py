@@ -1,6 +1,7 @@
 from google.cloud import storage
 import hashlib,os
 
+
 class Backend:
     '''
         Backend class connects our web application with our google cloud storage.
@@ -23,15 +24,18 @@ class Backend:
           content_bucket: This stands for the GCS bucket where we store the web application content.
     
         '''
+        #>Ibby wrapping this is its own class would make this code + test code simpler to read
         self.storage_client = storage.Client()
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
+        # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
         self.bucket_prefix = "users-data/"
         self.site_secret = "siam"
         
         
     def get_wiki_page(self, name):
         bucket=self.storage_client.bucket(self.content_bucket)
+        # Ibby> Move this bucket prefix into a file level constant
         blob = bucket.blob('uploaded-pages/'+name)
         with blob.open("r") as f:
             return (f.read())
@@ -77,12 +81,14 @@ class Backend:
         '''
         This method takes in a username and password, and returns the hashed password.
         '''
+        # Ibby> Consider lowering before passing to the backend in all cases
         user_name = username.lower()
         with_salt = f"{user_name}{self.site_secret}{password}"
         hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
 
         return hashed_pwd
 
+    # Ibby> is_username_unique is a better function
     def check_user(self, username):
         '''
         This method is used to check if a username is valid.
@@ -135,11 +141,14 @@ class Backend:
         return False, "User not found"
 
     #Fix up to actually retrieve from bucket
+    #>Ibby this should be named `get_all_images` to be clear it returns many
     def get_image(self):
         storage_client = storage.Client()
         bucket=storage_client.bucket(self.content_bucket)
+        # Ibby> typo (sp)
         picture_lst = list(bucket.list_blobs(prefix='About-content/'))
         for blob in picture_lst:
             pic=bucket.get_blob(blob.name)
+            #Ibby> remove prints 
             print(pic)
         return picture_lst

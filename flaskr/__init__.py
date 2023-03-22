@@ -26,6 +26,8 @@ def create_app(test_config=None):
         # Load the test config if passed in.
         app.config.from_mapping(test_config)
 
+    #> Ibby: Here you should create everything that should only be created once (i.e. backend)
+
     # TODO(Project 1): Make additional modifications here for logging in, backends
     # and additional endpoints.
     pages.make_endpoints(app)
