@@ -65,10 +65,13 @@ class Backend:
         '''
         This method returns a list of all user blobs.
         '''
+        users = set()
         bucket = self.storage_client.bucket(self.user_bucket)
         blobs = bucket.list_blobs(prefix=self.bucket_prefix)
+        for blob in blobs:
+            users.add(blob.name.removeprefix(self.bucket_prefix))
 
-        return blobs
+        return users
         
     def hash_pwd(self, username, password):
         '''
@@ -85,10 +88,8 @@ class Backend:
         This method is used to check if a username is valid.
         If an account exists with the user name, it returns True, otherwise, it returns False.
         '''
-        user_list = set()
-        user_blobs = set(self.get_users())
-        for blob in user_blobs:
-            user_list.add(blob.name.removeprefix(self.bucket_prefix))
+        user_list = self.get_users()
+
         if username not in user_list:
             return False
         return True

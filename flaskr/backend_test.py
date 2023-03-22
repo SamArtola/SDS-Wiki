@@ -1,7 +1,7 @@
 import pytest
 from flaskr.backend import Backend
 import unittest, os, io, pytest, hashlib
-from unittest.mock import patch,Mock,MagicMock
+from unittest.mock import patch,Mock,MagicMock,mock_open
 from google.cloud import storage
 
 # TODO(Project 1): Write tests for Backend methods.
@@ -130,4 +130,66 @@ def test_upload_file(mock_upload_file,mock_storage_client):
     #mock_bucket.blob.assert_called_once_with('uploaded-pages/test_file.txt')
     #mock_blob.upload_from_filename.assert_called_once_with('test_file.txt')
     #os.remove.assert_called_once_with('test_file.txt')
+
+@patch('flaskr.backend.storage.Client')
+def test_get_users(mock_storage):
+    mock_storage_client = MagicMock()
+    mock_bucket = MagicMock()
+    mock_storage.return_value = mock_storage_client
+    mock_storage_client.bucket.return_value=mock_bucket
+
+    mock_user_blob = MagicMock()
+    mock_user_blob.name = 'users-data/mayo'
+    mock_bucket.list_blobs.return_value= [mock_user_blob]
+
+    backend = Backend()
+    users = backend.get_users()
+
+    mock_storage.assert_called_once_with()
+    mock_bucket.list_blobs.assert_called_once_with(prefix='users-data/')
+    assert users == {'mayo'}
+
+@patch('flaskr.backend.storage.Client')
+@patch('flaskr.backend.Backend.get_users', return_value = {'mayo', 'samtest'})
+def test_check_user_user_does_not_exist(mock_users, mock_storage):
+    backend = Backend()
+    status = backend.check_user('wisdom')
+
+    assert not status
+
+
+@patch('flaskr.backend.storage.Client')
+@patch('flaskr.backend.Backend.get_users', return_value = {'mayo', 'samtest'})
+def test_check_user_user_exists(mock_users, mock_storage):
+    backend = Backend()
+    status = backend.check_user('mayo')
+
+    assert status
+
+@patch('hashlib.blake2b')
+@patch('flaskr.backend.storage.Client')
+def test_hash_pwd(mock_storage, mock_hashlib):
+    backend = Backend()
+    mock_hashlib.return_value.hexdigest.return_value = 'mayo'
+    mock_pwd = backend.hash_pwd('many', 'abc')
     
+    assert mock_pwd == 'mayo'
+
+
+@patch('flaskr.backend.storage.Client')
+@patch('flaskr.backend.Backend.hash_pwd', return_value = 'mayo')
+def test_sign_up(mock_hash, mock_storage):
+    mock_storage_instance = MagicMock()
+    mock_bucket = MagicMock()
+    mock_user = MagicMock()
+    mock_user_blob = MagicMock()
+    mock_bucket.blob.return_value = mock_user
+    mock_user.open.return_value.__enter__.return_value = mock_user_blob
+    mock_storage_instance.bucket.return_value = mock_bucket
+    mock_storage.return_value = mock_storage_instance
+
+    backend = Backend() 
+    backend.sign_up('yvette', 'abcd')
+
+    mock_user.open.assert_called_once()
+    mock_user_blob.write.assert_called_once_with('mayo')
