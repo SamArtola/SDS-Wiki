@@ -6,3 +6,11 @@ lint:
  - yapf --recursive . --style google
  only:
  - pushes
+
+unittest:
+  stage: test
+  script:
+  - pip install requirements.txt
+  - pytest
+  only:
+  - pushes
