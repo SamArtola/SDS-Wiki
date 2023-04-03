@@ -10,7 +10,7 @@ lint:
 unittest:
   stage: test
   script:
-  - pip install requirements.txt
+  - pip install -r requirements.txt
   - pytest
   only:
   - pushes
