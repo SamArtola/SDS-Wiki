@@ -1,5 +1,5 @@
 from google.cloud import storage
-import hashlib,os
+import hashlib, os
 
 
 class Backend:
@@ -16,8 +16,10 @@ class Backend:
         bucket_prefix: Attribute variable that stores the name of user data folder which contains users' passwords
         site_secret: Site secret used in hashing users' passwords
     '''
-    def __init__(self, user_bucket="user-pw-bucket", content_bucket="wikis-content"):
 
+    def __init__(self,
+                 user_bucket="user-pw-bucket",
+                 content_bucket="wikis-content"):
         ''' Initializes the instance of the backend class with the names of buckets entered.
         Args:
           user_bucket: This stands for the GCS bucket where we store users sensitive information such as passwords.
@@ -31,12 +33,11 @@ class Backend:
         # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
         self.bucket_prefix = "users-data/"
         self.site_secret = "siam"
-        
-        
+
     def get_wiki_page(self, name):
-        bucket=self.storage_client.bucket(self.content_bucket)
+        bucket = self.storage_client.bucket(self.content_bucket)
         # Ibby> Move this bucket prefix into a file level constant
-        blob = bucket.blob('uploaded-pages/'+name)
+        blob = bucket.blob('uploaded-pages/' + name)
         with blob.open("r") as f:
             return (f.read())
 
@@ -45,7 +46,7 @@ class Backend:
         This method is used to list links to uploaded wiki content.
         '''
         nombre = []
-        bucket=self.storage_client.bucket(self.content_bucket)
+        bucket = self.storage_client.bucket(self.content_bucket)
         pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
         for page in pages:
             name = page.name.split("uploaded-pages/")[1]
@@ -59,12 +60,12 @@ class Backend:
         '''
         This method uploads a users file into the wiki content bucket.
         '''
-        bucket=self.storage_client.bucket(self.content_bucket)
-        new_file=bucket.blob('uploaded-pages/'+file.filename)
+        bucket = self.storage_client.bucket(self.content_bucket)
+        new_file = bucket.blob('uploaded-pages/' + file.filename)
         file.save(file.filename)
         new_file.upload_from_filename(file.filename)
         os.remove(file.filename)
-    
+
     def get_users(self):
         '''
         This method returns a list of all user blobs.
@@ -76,7 +77,7 @@ class Backend:
             users.add(blob.name.removeprefix(self.bucket_prefix))
 
         return users
-        
+
     def hash_pwd(self, username, password):
         '''
         This method takes in a username and password, and returns the hashed password.
@@ -109,11 +110,10 @@ class Backend:
         user_name = username.lower()
         bucket = self.storage_client.bucket(self.user_bucket)
         new_user = bucket.blob(self.bucket_prefix + user_name)
-        hashed_pwd = self.hash_pwd(user_name,password)
+        hashed_pwd = self.hash_pwd(user_name, password)
 
         with new_user.open("w") as f:
             f.write(hashed_pwd)
-        
 
     def sign_in(self, username, password):
         '''
@@ -133,7 +133,7 @@ class Backend:
         bucket = self.storage_client.bucket(self.user_bucket)
         blob_obj = bucket.get_blob(f"{self.bucket_prefix}{username}")
         if blob_obj:
-            hashed_password = self.hash_pwd(username,password)
+            hashed_password = self.hash_pwd(username, password)
             content = blob_obj.download_as_text()
             if content == hashed_password:
                 return True, None
@@ -144,11 +144,11 @@ class Backend:
     #>Ibby this should be named `get_all_images` to be clear it returns many
     def get_image(self):
         storage_client = storage.Client()
-        bucket=storage_client.bucket(self.content_bucket)
+        bucket = storage_client.bucket(self.content_bucket)
         # Ibby> typo (sp)
         picture_lst = list(bucket.list_blobs(prefix='About-content/'))
         for blob in picture_lst:
-            pic=bucket.get_blob(blob.name)
-            #Ibby> remove prints 
+            pic = bucket.get_blob(blob.name)
+            #Ibby> remove prints
             print(pic)
         return picture_lst
