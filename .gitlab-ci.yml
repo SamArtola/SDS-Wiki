@@ -14,3 +14,14 @@ unittest:
   - pytest flaskr
   only:
   - pushes
+
+prod:
+ image: google/cloud-sdk:alpine
+ stage: deploy
+ environment: Production
+ only:
+ - main
+ script:
+ - echo $SERVICE_ACCOUNT > /tmp/$CI_PIPELINE_ID.json
+ - gcloud auth activate-service-account --key-file /tmp/$CI_PIPELINE_ID.json
+ - --quiet --project $neon-glyph-377903
