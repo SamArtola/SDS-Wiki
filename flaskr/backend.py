@@ -32,6 +32,7 @@ class Backend:
         self.content_bucket = content_bucket
         # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
         self.bucket_prefix = "users-data/"
+        self.card_prefix = "flashcards/"
         self.site_secret = "siam"
 
     def get_wiki_page(self, name):
@@ -152,3 +153,5 @@ class Backend:
             #Ibby> remove prints
             print(pic)
         return picture_lst
+
+    

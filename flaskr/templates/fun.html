@@ -1,0 +1,78 @@
+{% extends "main.html" %}
+
+{% block page_name %}
+Fun
+{% endblock %}
+
+{% block content %}
+<div style= "height:250px; align-items:center; display:flex; justify-content: center; background-color: rgb(134, 171, 247);">
+    <h1 style="text-align: center; padding: 20px;border-radius: 20px; box-shadow: 5px 10px;">Have fun learning about notable women in STEM!</h1>
+</div>
+
+<style>
+    *{
+      box-sizing: border-box;
+    }
+
+    .button{
+        justify-content: center;
+        width: 40%;
+        display: inline-block;
+        font-family: 'Times New Roman', Times, serif;
+        margin-right: 120px;
+        padding: 30px;
+        background-color: rgb(134, 171, 247);
+        border-radius: 25px;
+    }
+
+    .button:hover{
+        background-color: aliceblue;
+    }
+
+    .column {
+      float: left;
+      width: 25%;
+      padding: 20px 10px;
+    }
+    
+    .row {margin: 10px 25px;}
+    
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    
+    .card {
+      box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+      justify-content: center;
+      padding: 10px;
+      height: 100px;
+      text-align: center;
+      background-color: rgb(134, 171, 247);
+    }
+    .card:hover{
+        background-color: aliceblue;
+    }
+</style>
+
+<div class="row">
+    {% for card in card_list %}
+    <div class="column">
+        <div class="card">
+            <h1>{{card}}</h1>
+        </div>
+    </div>
+    {%endfor%} 
+</div>
+
+<div style="padding-left: 120px; padding-bottom: 50px;">
+    <button class= "button" onclick="displaymodal()">
+        <h2>Create flashcard</h2>
+    </button>
+    <button class= "button" onclick="trivia()" >
+        <h2>Play Trivia</h2>
+    </button>
+</div>
+
+{% endblock %}

@@ -34,6 +34,12 @@ def make_endpoints(app):
         back = Backend()
         pics = back.get_image()
         return render_template('about.html', pics=pics)
+    
+    @app.route('/fun')
+    def fun():
+        card_list = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
+        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']        
+        return render_template('/fun.html', card_list=card_list)
 
     @app.route('/signup', methods=['GET'])
     def signup_get():
