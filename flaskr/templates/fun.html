@@ -3,13 +3,12 @@
 {% block page_name %}
 Fun
 {% endblock %}
-
 {% block content %}
-<div style= "height:250px; align-items:center; display:flex; justify-content: center; background-color: rgb(134, 171, 247);">
-    <h1 style="text-align: center; padding: 20px;border-radius: 20px; box-shadow: 5px 10px;">Have fun learning about notable women in STEM!</h1>
-</div>
-
 <style>
+    a{
+        text-decoration: none;
+        color: black;
+    }
     *{
       box-sizing: border-box;
     }
@@ -54,7 +53,12 @@ Fun
     .card:hover{
         background-color: aliceblue;
     }
+
+    
 </style>
+<div style= "height:250px; align-items:center; display:flex; justify-content: center; background-color: rgb(134, 171, 247);">
+    <h1 style="text-align: center; padding: 20px;border-radius: 20px; box-shadow: 5px 10px;">Have fun learning about notable women in STEM!</h1>
+</div>
 
 <div class="row">
     {% for card in card_list %}
@@ -67,10 +71,10 @@ Fun
 </div>
 
 <div style="padding-left: 120px; padding-bottom: 50px;">
-    <button class= "button" onclick="displaymodal()">
-        <h2>Create flashcard</h2>
+    <button id = "button" class= "button">
+        <a href="{{ url_for('createcard_get') }}"> <h2>Create Flashcard</h2></a>
     </button>
-    <button class= "button" onclick="trivia()" >
+    <button class= "button" >
         <h2>Play Trivia</h2>
     </button>
 </div>

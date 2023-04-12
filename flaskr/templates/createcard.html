@@ -1,0 +1,50 @@
+{% extends "main.html" %}
+
+{% block page_name %}
+Create Card
+{% endblock %}
+{% block content %}
+<style>
+    a{
+        text-decoration: none;
+        color: black;
+    }
+
+    .button{
+        justify-content: center;
+        width: 40%;
+        display: inline-block;
+        font-family: 'Times New Roman', Times, serif;
+
+        padding: 10px;
+        background-color: rgb(134, 171, 247);
+        border-radius: 25px;
+    }
+
+    .button:hover{
+        background-color: aliceblue;
+    }
+</style>
+
+<div style="text-align: center; padding: 150px 0; background-color: aliceblue;">
+    <h1>Create Flashcard</h1>
+    <form action="/createcard" method="POST">
+        <div class="display_text">{{display_text}}</div><br>
+        <label for="cardname">Woman in STEM</label><br><br>
+        <input style = "display: inline-block; width:20%;" required placeholder="First Name" type="text" id="firstname" name = "firstname"><br><br>
+        <input style = "display: inline-block; width:20%;" required placeholder="Last Name" type="text" id="lastname" name = "lastname"><br><br>
+        <label for="contribution">Contribution:</label><br><br>
+        <textarea cols="40" rows="5" style = width:30%;  required placeholder="Enter text here..." type="text" id="contribution" name="contribution" ></textarea><br><br>
+        <input id = "submit" type="submit" value="Submit">
+    </form>
+    <br><br><br>
+    <button id = "button" class= "button">
+        <a href="{{ url_for('fun') }}"> <h2>Return to Fun Page!</h2></a>
+    </button>
+</div>
+
+<div style="padding-left: 120px; padding-bottom: 50px;">
+    
+</div>
+
+{% endblock %}

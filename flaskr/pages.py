@@ -35,19 +35,12 @@ def make_endpoints(app):
         pics = back.get_image()
         return render_template('about.html', pics=pics)
     
-    @app.route('/fun')
-    def fun():
-        card_list = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
-        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']        
-        return render_template('/fun.html', card_list=card_list)
-
     @app.route('/signup', methods=['GET'])
     def signup_get():
         return render_template('/signup.html')
 
     @app.route('/signup', methods=['POST'])
     def signup_post():
-        back_end = Backend()
         display_text = ''
 
         username = request.form['name']
@@ -56,7 +49,7 @@ def make_endpoints(app):
         if not username or not password:
             display_text = "Please fill all required fields"
 
-        elif back_end.check_user(username):
+        elif not back_end.is_username_unique(username):
             display_text = "Ooops, that username is taken."
 
         else:
@@ -168,3 +161,33 @@ def make_endpoints(app):
                 A template rendered from the joy_buolamwini.html file to the assigned '/pages/joy_buolamwini' route.
         '''
         return render_template('/joy_buolamwini.html')
+
+    @app.route('/fun')
+    def fun():
+        card_list = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
+        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']        
+        return render_template('/fun.html', card_list=card_list)
+
+    @app.route('/createcard', methods=['GET'])
+    def createcard_get():
+        return render_template('/createcard.html')
+        
+
+    @app.route('/createcard', methods=['POST'])
+    def createcard_post():
+
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        card_content = request.form['contribution']
+
+        card_name = back_end.format_cardname(firstname, lastname)
+
+        if back_end.does_flashcard_exist(card_name):
+            display_text = back_end.get_alert_message(card_name)
+
+        else:
+            display_text = back_end.get_alert_message(card_name)
+            back_end.create_card(card_name, card_content)
+            return render_template('/createcard.html', display_text=display_text)
+        
+        return render_template('/createcard.html', display_text=display_text)

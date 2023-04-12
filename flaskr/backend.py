@@ -90,16 +90,17 @@ class Backend:
 
         return hashed_pwd
 
-    # Ibby> is_username_unique is a better function
-    def check_user(self, username):
+    def is_username_unique(self, username):
         '''
         This method is used to check if a username is valid.
-        If an account exists with the user name, it returns True, otherwise, it returns False.
+        If an account exists with the user name, it returns False, otherwise, it returns True.
         '''
+        user_name = username.lower()
         user_list = self.get_users()
 
-        if username not in user_list:
-            return False
+        if user_name in user_list:
+            return  False
+
         return True
 
     def sign_up(self, username, password):
@@ -108,7 +109,7 @@ class Backend:
         as an object in the users-data folder in the user_bucket.
         This object contains the hashed password
         '''
-        user_name = username.lower()
+        user_name = (username.strip()).lower()
         bucket = self.storage_client.bucket(self.user_bucket)
         new_user = bucket.blob(self.bucket_prefix + user_name)
         hashed_pwd = self.hash_pwd(user_name, password)
@@ -154,4 +155,79 @@ class Backend:
             print(pic)
         return picture_lst
 
+    def format_cardname(self, firstname, lastname):
+        cardname = (firstname.strip()+lastname.strip()).lower()
+        return cardname
     
+    def get_display_name(self):
+        return 
+
+    def create_card(self, card_name, contribution):
+        bucket = self.storage_client.bucket(self.content_bucket)
+        cardblob = bucket.blob(self.card_prefix + card_name)
+
+        with cardblob.open("w") as f:
+            f.write(contribution)
+
+    def get_flashcards(self):
+        '''
+        This method returns a list of all flashcard blobs.
+
+        Args:
+            self:
+        
+        Returns:
+            A set containing all the card names stored in the flashcard folder.
+        '''
+        cards = set()
+        bucket = self.storage_client.bucket(self.content_bucket)
+        cardblobs = bucket.list_blobs(prefix = self.card_prefix)
+
+        for flashcard in cardblobs:
+            cards.add(flashcard.name.removeprefix(self.card_prefix))
+
+        return cards  
+
+    def does_flashcard_exist(self, cardname):
+        '''
+        This method is used to check if a flashcard with a cardname already exists.
+        If the flashcard exists, it returns True, otherwise, it returns False.
+
+        Args:
+            self
+            cardname: Obtained from the form filled by the user.
+        
+        Returns:
+            A boolean indicating if the flashcard exists or not.
+        '''
+        card_name = cardname.lower()
+        flashcards = self.get_flashcards()
+
+        if card_name in flashcards:
+            return True
+
+        return False
+
+    def get_alert_message(self, cardname):
+        '''
+        This method is used to check if a flashcard with a cardname already exists.
+        If the flashcard exists, it returns True, otherwise, it returns False.
+
+        Args:
+            self
+            cardname: Obtained from the form filled by the user.
+        
+        Returns:
+            A boolean indicating if the flashcard exists or not.
+        '''
+        
+        if self.does_flashcard_exist(cardname):
+            alert_message = "Ooops, there is a flashcard with this name."
+
+        else:
+            alert_message = "You have successfully created your flashcard! \n Create another card!"
+
+        return alert_message
+        
+
+
