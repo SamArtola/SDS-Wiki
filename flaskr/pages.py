@@ -165,8 +165,13 @@ def make_endpoints(app):
     @app.route('/fun')
     def fun():
         card_list = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
-        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']        
-        return render_template('/fun.html', card_list=card_list)
+        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+        
+        for letter in card_list:            
+            matching_card = back_end.get_formatted_display_name(letter)
+            matching_info = back_end.get_card_display_info()
+        
+            return render_template('/fun.html', card_list=card_list, matching_card=matching_card, matching_info=matching_info)
 
     @app.route('/createcard', methods=['GET'])
     def createcard_get():
@@ -183,10 +188,10 @@ def make_endpoints(app):
         card_name = back_end.format_cardname(firstname, lastname)
 
         if back_end.does_flashcard_exist(card_name):
-            display_text = back_end.get_alert_message(card_name)
+            display_text = back_end.get_alert_message()
 
         else:
-            display_text = back_end.get_alert_message(card_name)
+            display_text = back_end.get_alert_message()
             back_end.create_card(card_name, card_content)
             return render_template('/createcard.html', display_text=display_text)
         
