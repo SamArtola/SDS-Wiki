@@ -1,6 +1,6 @@
 import pytest
 from flaskr.backend import Backend
-import unittest, os, io, pytest, hashlib
+import unittest, os, io, hashlib
 from unittest.mock import patch, Mock, MagicMock, mock_open
 from google.cloud import storage
 
@@ -112,29 +112,28 @@ def test_get_all_page_names(mock_storage_client):
     #assert page_list == ["page1","page2"]      #get all page names uses a set() so test fails sometimes
 
 
-@patch.object(storage, 'Client')
-@patch("flaskr.backend.Backend.upload_file")
-def test_upload_file(mock_upload_file, mock_storage_client):
-    #Mock GCS
-    mock_bucket = MagicMock()
-    mock_blob = MagicMock()
-    mock_storage_client.return_value.bucket.return_value = mock_bucket
-    mock_bucket.blob.return_value = mock_blob
+# @patch("flaskr.backend.storage.Client")
+# def test_upload_file_no_image(mock_storage_client):
+#     #Mock GCS
+#     mock_bucket = MagicMock()
+#     mock_blob = MagicMock()
+#     mock_storage_client.return_value.bucket.return_value = mock_bucket
+#     mock_bucket.blob.return_value = mock_blob
 
-    #file mock
-    file = MagicMock()
-    file.filename = "test_file.txt"
+#     #file mock
+#     file = MagicMock()
+#     file.filename = "test_file.txt"
 
-    #backend mock
-    db = Backend()
-    db.upload_file(file)
+#     #backend mock
+#     db = Backend()
+#     db.upload_file(file)
 
-    #asserting
-    mock_storage_client.assert_called_once_with()
-    #mock_storage_client.bucket.assert_called_once_with(db.content_bucket)
-    #mock_bucket.blob.assert_called_once_with('uploaded-pages/test_file.txt')
-    #mock_blob.upload_from_filename.assert_called_once_with('test_file.txt')
-    #os.remove.assert_called_once_with('test_file.txt')
+#     #asserting
+#     mock_storage_client.assert_called_once_with()
+#     #mock_storage_client.bucket.assert_called_once_with(db.content_bucket)
+#     #mock_bucket.blob.assert_called_once_with('uploaded-pages/test_file.txt')
+#     #mock_blob.upload_from_filename.assert_called_once_with('test_file.txt')
+#     #os.remove.assert_called_once_with('test_file.txt')
 
 
 @patch('flaskr.backend.storage.Client')

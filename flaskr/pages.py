@@ -1,12 +1,18 @@
 from flask import render_template, request, session, redirect, url_for
 from flaskr.backend import Backend
-
+from flaskr.custom_filters import getStatusColor, getStatusName
+from datetime import date
+import time
 
 #> Ibby: Please add method-level comments for all public methods
 def make_endpoints(app):
     back_end = Backend()
+    app.add_template_filter(getStatusColor)
+    app.add_template_filter(getStatusName)
     # Flask uses the "app.route" decorator to call methods when users
     # go to a specific route on the project's website.
+        
+
     @app.route("/")
     def home():
         '''
@@ -23,8 +29,14 @@ def make_endpoints(app):
         #Ibby> Consider splitting into separate methods for get and post
         if request.method == "POST":
             backend = Backend()
-            file = request.files['file']
-            backend.upload_file(file)
+            page_name = request.form["page_name"]
+            image_url = request.form["image_url"]
+            user_file = request.files['file']
+            username = session['username'].lower()
+            upload_date = date.today().strftime("%m/%d/%Y")
+            if image_url:            
+                backend.upload_file(page_name, username,  user_file, upload_date, image_url)
+            backend.upload_file(page_name, username,  user_file, upload_date)
             #>Ibby consider passing in the page header name instead of defining it in the template.
         return render_template('/upload.html')
 
@@ -73,8 +85,21 @@ def make_endpoints(app):
     def show_wiki(curpage):
         backend = Backend()
         page = curpage
-        content = backend.get_wiki_page(page)
-        return render_template('/pages.html', contents=content, pagename=page)
+        page_data = backend.get_wiki_page(page)
+        
+        if page_data["Edits"] and page_data["Edits"][-1]["Status"] == 1:
+            edit_button = False
+        else:
+            edit_button= True
+            
+        return render_template('/pages.html', 
+        content=page_data["Content"],
+        author = page_data["Author"],
+        image = page_data["Image"],
+        date = page_data["Date"],
+        pagename=page,
+        edit_button = edit_button
+        )
 
     @app.route('/quotes')
     def quotes():
@@ -162,3 +187,48 @@ def make_endpoints(app):
                 A template rendered from the joy_buolamwini.html file to the assigned '/pages/joy_buolamwini' route.
         '''
         return render_template('/joy_buolamwini.html')
+    
+    @app.route('/edit-form', methods=['POST'])
+    def edit_form():
+        page_name = request.form["page-name"]
+        editor = request.form["editor"].lower()
+        content = request.form["content"]
+        edit_date = date.today().strftime("%m/%d/%Y")
+        
+        back_end.edit_page_data(page_name, content, edit_date, editor)
+        
+        page_url = f"/pages/{page_name}"
+        
+        return redirect(page_url)
+
+
+    @app.route('/edit-page')
+    def edit_page():
+        username = session['username']
+
+        user_edits = back_end.get_user_edits(username)
+        user_page_edits = back_end.get_user_pages_edits(username)
+        session["editContent"] = ""
+                
+        return render_template('/edit.html', user_edits_list=user_edits, page_edits=user_page_edits)
+        
+
+    @app.route('/showUserEdits')
+    def showUserEdits():
+        session["showUserEdits"] = True
+        return redirect("/edit-page")
+
+    @app.route('/showPageEdits')
+    def showPageEdits():
+        session["showUserEdits"] = False
+        return redirect("/edit-page")
+
+    @app.route('/update-edit', methods=['POST'])
+    def update_edit():
+        page_name = request.form['editPageName']
+        edit_action= request.form['edit-action']
+
+        back_end.author_edit_action(page_name, edit_action)
+
+        time.sleep(2) 
+        return redirect("/edit-page")
