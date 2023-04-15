@@ -143,8 +143,8 @@ Fun
 <div class="row">
     {% for card in card_list %}
     <div class="column">
-        <li style="list-style-type: none;" class="card" id="cardlist"> 
-            <h1 id="cardletter">{{card}}</h1>
+        <li style="list-style-type: none;" class="card" id={{card}} onclick=add_id({id})> 
+            <h1 id = {{card}} class ="cardletter">{{card}}</h1>
         </li>
     </div>
     {%endfor%} 
@@ -166,6 +166,7 @@ Fun
             class="close" title="Close Modal">&times;</span>
         </div>
         <div class="container" style="text-align: center">
+            <h1>{{curr}}</h1>
             <h1>{{matching_card}}</h1>
             <h2>{{matching_info}}</h2>
         </div>
@@ -175,18 +176,24 @@ Fun
 
 <script>
     var modal = document.getElementById("flashcard");
-      
-    var btn = document.getElementById("cardletter");
-
     var span = document.getElementsByClassName("close")[0];
-    
+    var btn = document.getElementsByClassName("cardletter")
+    const cards = [];
+
+    var curr = cards[0]
+
     btn.onclick = function() {
       modal.style.display = "block";
+    }
+    add_id = function(curr){
+        cards.push(curr)
+        return cards
     }
 
     span.onclick = function() {
       modal.style.display = "none";
+      cards = [];      
     }
-    
+
 </script>
 {% endblock %}

@@ -34,7 +34,7 @@ def make_endpoints(app):
         back = Backend()
         pics = back.get_image()
         return render_template('about.html', pics=pics)
-    
+
     @app.route('/signup', methods=['GET'])
     def signup_get():
         return render_template('/signup.html')
@@ -164,19 +164,23 @@ def make_endpoints(app):
 
     @app.route('/fun')
     def fun():
-        card_list = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
-        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-        
-        for letter in card_list:            
+        card_list = [
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+        ]
+
+        for letter in card_list:
             matching_card = back_end.get_formatted_display_name(letter)
             matching_info = back_end.get_card_display_info()
-        
-            return render_template('/fun.html', card_list=card_list, matching_card=matching_card, matching_info=matching_info)
+
+            return render_template('/fun.html',
+                                   card_list=card_list,
+                                   matching_card=matching_card,
+                                   matching_info=matching_info)
 
     @app.route('/createcard', methods=['GET'])
     def createcard_get():
         return render_template('/createcard.html')
-        
 
     @app.route('/createcard', methods=['POST'])
     def createcard_post():
@@ -193,6 +197,7 @@ def make_endpoints(app):
         else:
             display_text = back_end.get_alert_message()
             back_end.create_card(card_name, card_content)
-            return render_template('/createcard.html', display_text=display_text)
-        
+            return render_template('/createcard.html',
+                                   display_text=display_text)
+
         return render_template('/createcard.html', display_text=display_text)

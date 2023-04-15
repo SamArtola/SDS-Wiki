@@ -100,7 +100,7 @@ class Backend:
         user_list = self.get_users()
 
         if user_name in user_list:
-            return  False
+            return False
 
         return True
 
@@ -168,9 +168,8 @@ class Backend:
         Returns:
             A formatted string of the card name (format: firstname-lastname).
         '''
-        self.cardname = (firstname.strip()+'-'+lastname.strip()).lower()
+        self.cardname = (firstname.strip() + '-' + lastname.strip()).lower()
         return self.cardname
-    
 
     def create_card(self, card_name, contribution):
         '''
@@ -217,7 +216,7 @@ class Backend:
         Returns:
             A string containing a success or failure message for the card creation.
         '''
-        
+
         if self.does_flashcard_exist(self.cardname()):
             alert_message = "Ooops, there is a flashcard with this name."
 
@@ -238,12 +237,12 @@ class Backend:
         '''
         cards = set()
         bucket = self.storage_client.bucket(self.content_bucket)
-        cardblobs = bucket.list_blobs(prefix = self.card_prefix)
+        cardblobs = bucket.list_blobs(prefix=self.card_prefix)
 
         for flashcard in cardblobs:
             cards.add(flashcard.name.removeprefix(self.card_prefix))
 
-        return cards  
+        return cards
 
     def get_card_name(self, letter):
         '''
@@ -265,7 +264,7 @@ class Backend:
 
         return self.no_card_name
 
-    def get_formatted_display_name(self,letter):
+    def get_formatted_display_name(self, letter):
         '''
         This method returns a formatted version of flashcard names for display.
 
@@ -299,10 +298,10 @@ class Backend:
         default_info = "..."
         if cardname == self.no_card_name:
             return default_info
-                
+
         bucket = self.storage_client.bucket(self.content_bucket)
         cardblob = bucket.blob(self.card_prefix + cardname)
 
         with cardblob.open("r") as f:
-            card_display_info = (f.read())        
+            card_display_info = (f.read())
             return card_display_info
