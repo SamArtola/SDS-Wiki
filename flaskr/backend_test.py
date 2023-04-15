@@ -1,6 +1,6 @@
 import pytest
 from flaskr.backend import Backend
-import unittest, os, io, hashlib
+import os, io, hashlib, werkzeug.datastructures, json
 from unittest.mock import patch, Mock, MagicMock, mock_open
 from google.cloud import storage
 
@@ -60,27 +60,34 @@ def test_sign_in_password_mismatch(mock_client, mock_hashlib):
 # Sam: Get wiki page, all page names, upload, get image (if time, not being used in general)
 
 
-@patch.object(storage, 'Client')
-def test_get_wiki_page(mock_storage_client):
-    mock_storage_client_instance = MagicMock()
+@patch('json.loads')
+@patch('flaskr.backend.storage.Client')
+def test_get_wiki_page(mock_storage_client, mock_json):
+    page_data = {
+        "Name": "name",
+        "Author": "Author's name",
+        "Content": "Content",
+        "Image": "",
+        "Date": "Date",
+        "Edits": []
+    }
+
+    mock_json.return_value = page_data
     mock_bucket = MagicMock()
-    mock_blob = MagicMock()
+    mock_bucket.return_value.blob.return_value.download_as_text.return_value = '''{"Name": "name", "Author": "Author's name", "Content":  "Content",
+    "Image": "", "Date": "Date", "Edits":[]}'''
 
-    mock_storage_client.return_value = mock_storage_client_instance
-    mock_storage_client_instance.bucket.return_value = mock_bucket
-    mock_bucket.blob.return_value = mock_blob
-    mock_blob.open.return_value.__enter__.return_value.read.return_value = "testing page reader"
+    mock_storage_client.return_value.bucket.return_value = mock_bucket
 
-    backend = Backend()
+    backend = Backend(content_bucket="test_wikis-content")
     page_content = backend.get_wiki_page("test-page")
 
-    mock_storage_client.assert_called_once_with()
-    mock_storage_client_instance.bucket.assert_called_once_with(
-        backend.content_bucket)
+    mock_storage_client.assert_called_once()
+    mock_storage_client.return_value.bucket.assert_called_once_with(
+        "test_wikis-content")
     mock_bucket.blob.assert_called_once_with("uploaded-pages/test-page")
-    mock_blob.open.assert_called_once_with("r")
-
-    assert page_content == "testing page reader"
+    mock_bucket.blob.return_value.download_as_text.assert_called_once()
+    assert page_content == page_data
 
 
 @patch.object(storage, 'Client')
@@ -112,28 +119,89 @@ def test_get_all_page_names(mock_storage_client):
     #assert page_list == ["page1","page2"]      #get all page names uses a set() so test fails sometimes
 
 
-# @patch("flaskr.backend.storage.Client")
-# def test_upload_file_no_image(mock_storage_client):
-#     #Mock GCS
-#     mock_bucket = MagicMock()
-#     mock_blob = MagicMock()
-#     mock_storage_client.return_value.bucket.return_value = mock_bucket
-#     mock_bucket.blob.return_value = mock_blob
+@patch("os.remove")
+@patch('json.dumps')
+@patch("flaskr.backend.storage.Client")
+@patch("werkzeug.datastructures.FileStorage")
+def test_upload_file_no_image(mock_file, mock_storage_client, mock_json,
+                              mock_os):
+    mock_file.filename = "test file.txt"
+    file_data = "Women in STEM"
 
-#     #file mock
-#     file = MagicMock()
-#     file.filename = "test_file.txt"
+    fake_page = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "https://storage.cloud.google.com/wikis-content/DEFAULT%20IMG.png",
+        "Date":
+            "Date",
+        "Edits": []
+    }
 
-#     #backend mock
-#     db = Backend()
-#     db.upload_file(file)
+    json_string = '''{"Name": "test-page", "Author": "Author's name", "Content": "Women in STEM", "Image": "https://storage.cloud.google.com/wikis-content/DEFAULT%20IMG.png", "Date": "Date", "Edits": []}'''
+    mock_json.return_value = json_string
 
-#     #asserting
-#     mock_storage_client.assert_called_once_with()
-#     #mock_storage_client.bucket.assert_called_once_with(db.content_bucket)
-#     #mock_bucket.blob.assert_called_once_with('uploaded-pages/test_file.txt')
-#     #mock_blob.upload_from_filename.assert_called_once_with('test_file.txt')
-#     #os.remove.assert_called_once_with('test_file.txt')
+    mock_bucket = MagicMock()
+    mock_storage_client.return_value.bucket.return_value = mock_bucket
+
+    with patch("builtins.open", mock_open(read_data=file_data)) as mocked_open:
+        backend = Backend(content_bucket="test-content-bucket")
+        backend.upload_file("test-page", "Author's name", mock_file, "Date")
+
+    mocked_open.assert_called_once_with("test file.txt", "r")
+    mock_storage_client.assert_called_once()
+    mock_storage_client.return_value.bucket.assert_called_once_with(
+        "test-content-bucket")
+    mock_bucket.blob.assert_called_once_with("uploaded-pages/test-page")
+    mock_bucket.blob.return_value.upload_from_string.assert_called_once_with(
+        data=json_string, content_type='application/json')
+    mock_os.assert_called_once_with("test file.txt")
+    mock_json.assert_called_once_with(fake_page)
+    mock_file.save.assert_called_once_with("test file.txt")
+
+
+@patch("os.remove")
+@patch('json.dumps')
+@patch("flaskr.backend.storage.Client")
+@patch("werkzeug.datastructures.FileStorage")
+def test_upload_file_image(mock_file, mock_storage_client, mock_json, mock_os):
+    mock_file.filename = "test file.txt"
+    file_data = "Women in STEM"
+
+    fake_page = {
+        "Name": "test-page",
+        "Author": "Author's name",
+        "Content": "Women in STEM",
+        "Image": "https://image.jpg",
+        "Date": "Date",
+        "Edits": []
+    }
+
+    json_string = '''{"Name": "test-page", "Author": "Author's name", "Content": "Women in STEM", "Image": "https://image.jpg", "Date": "Date", "Edits": []}'''
+    mock_json.return_value = json_string
+
+    mock_bucket = MagicMock()
+    mock_storage_client.return_value.bucket.return_value = mock_bucket
+
+    with patch("builtins.open", mock_open(read_data=file_data)) as mocked_open:
+        backend = Backend(content_bucket="test-content-bucket")
+        backend.upload_file("test-page", "Author's name", mock_file, "Date",
+                            "https://image.jpg")
+
+    mocked_open.assert_called_once_with("test file.txt", "r")
+    mock_storage_client.assert_called_once()
+    mock_storage_client.return_value.bucket.assert_called_once_with(
+        "test-content-bucket")
+    mock_bucket.blob.assert_called_once_with("uploaded-pages/test-page")
+    mock_bucket.blob.return_value.upload_from_string.assert_called_once_with(
+        data=json_string, content_type='application/json')
+    mock_os.assert_called_once_with("test file.txt")
+    mock_json.assert_called_once_with(fake_page)
+    mock_file.save.assert_called_once_with("test file.txt")
 
 
 @patch('flaskr.backend.storage.Client')
@@ -200,3 +268,261 @@ def test_sign_up(mock_hash, mock_storage):
 
     mock_user.open.assert_called_once()
     mock_user_blob.write.assert_called_once_with('mayo')
+
+
+@patch('json.dumps')
+@patch('json.loads')
+@patch('flaskr.backend.storage.Client')
+def test_edit_page_data(mock_client, mock_json_loads, mock_json_dumps):
+    retrieved_page_data = {
+        "Name": "test-page",
+        "Author": "Author's name",
+        "Content": "Women in STEM",
+        "Image": "link",
+        "Date": "Date",
+        "Edits": []
+    }
+    edited_page_data_string = '''{"Name": "test-page", "Author": "Author's name", "Content": "Women in STEM", "Image": "link", "Date": "Date", "Edits": [{"Content": "edited content", "Date": "edit date", "Status": 1, "Editor": "editor"}]}'''
+    retrieved_page_string = '''{"Name": "test-page", "Author": "Author's name", "Content":  "Women in STEM",
+    "Image": "link", "Date": "Date", "Edits":[]}'''
+    edited_page_data = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "link",
+        "Date":
+            "Date",
+        "Edits": [{
+            "Content": "edited content",
+            "Date": "edit date",
+            "Status": 1,
+            "Editor": "editor"
+        }]
+    }
+
+    mock_json_loads.return_value = retrieved_page_data
+    mock_json_dumps.return_value = edited_page_data_string
+
+    mock_bucket = MagicMock()
+    mock_bucket.get_blob.return_value.download_as_text.return_value = retrieved_page_string
+    mock_client.return_value.bucket.return_value = mock_bucket
+
+    backend = Backend(content_bucket="test-wikis-content")
+    backend.edit_page_data("test-page", "edited content", "edit date", "editor")
+
+    mock_client.assert_called_once()
+    mock_client.return_value.bucket.assert_called_once_with(
+        "test-wikis-content")
+    mock_bucket.get_blob.assert_called_once_with("uploaded-pages/test-page")
+    mock_bucket.get_blob.return_value.download_as_text.assert_called_once()
+    mock_json_loads.assert_called_once_with(retrieved_page_string)
+    mock_json_dumps.assert_called_once_with(edited_page_data)
+    mock_bucket.get_blob.return_value.upload_from_string.assert_called_once_with(
+        data=edited_page_data_string, content_type='application/json')
+
+
+@patch('json.loads')
+@patch('flaskr.backend.storage.Client')
+def test_get_all_uploaded_pages(mock_client, mock_json):
+    default_mock_blob = MagicMock()
+    mock_blob = MagicMock()
+    edited_page_data_string = '''{"Name": "test-page", "Author": "Author's name", "Content": "Women in STEM", "Image": "link", "Date": "Date", "Edits": [{"Content": "edited content", "Date": "edit date", "Status": 1, "Editor": "editor"}]}'''
+    edited_page_data = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "link",
+        "Date":
+            "Date",
+        "Edits": [{
+            "Content": "edited content",
+            "Date": "edit date",
+            "Status": 1,
+            "Editor": "editor"
+        }]
+    }
+
+    mock_blob.download_as_text.return_value = edited_page_data_string
+
+    mock_client.return_value.list_blobs.return_value = [
+        default_mock_blob, mock_blob
+    ]
+
+    mock_json.return_value = edited_page_data
+    backend = Backend(content_bucket="test-content-bucket")
+    uploaded_pages = backend.get_all_uploaded_pages()
+
+    assert uploaded_pages == [edited_page_data]
+    mock_blob.download_as_text.assert_called_once()
+    mock_client.assert_called_once()
+    mock_client.return_value.list_blobs.assert_called_once_with(
+        "test-content-bucket", prefix="uploaded-pages/")
+    mock_json.assert_called_once_with(edited_page_data_string)
+
+
+@patch('flaskr.backend.Backend.get_all_uploaded_pages')
+@patch('flaskr.backend.storage.Client')
+def test_get_user_edits(mock_client, mock_get_all_uploaded_pages):
+
+    edited_page_data = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "link",
+        "Date":
+            "Date",
+        "Edits": [{
+            "Content": "edited content",
+            "Date": "edit date",
+            "Status": 1,
+            "Editor": "editor"
+        }]
+    }
+
+    mock_get_all_uploaded_pages.return_value = [edited_page_data]
+
+    user_edit = {
+        "Name": "test-page",
+        "Author": "Author's name",
+        "Status": 1,
+        "Edit": "edited content",
+        "Date": "edit date"
+    }
+    backend = Backend()
+    user_edits = backend.get_user_edits("editor")
+
+    assert [user_edit] == user_edits
+    mock_client.assert_called_once()
+    mock_get_all_uploaded_pages.assert_called_once()
+
+
+@patch('flaskr.backend.Backend.get_all_uploaded_pages')
+@patch('flaskr.backend.storage.Client')
+def test_get_user_pages_edits(mock_client, mock_get_all_uploaded_pages):
+
+    edited_page_data = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "link",
+        "Date":
+            "Date",
+        "Edits": [{
+            "Content": "edited content",
+            "Date": "edit date",
+            "Status": 1,
+            "Editor": "editor"
+        }]
+    }
+
+    mock_get_all_uploaded_pages.return_value = [edited_page_data]
+
+    backend = Backend()
+    user_edits = backend.get_user_pages_edits("Author's name")
+
+    assert [edited_page_data] == user_edits
+    mock_client.assert_called_once()
+    mock_get_all_uploaded_pages.assert_called_once()
+
+
+@pytest.mark.parametrize("action,result,page_data", [
+    pytest.param(
+        "Accept",
+        '''{"Name": "test-page", "Author": "Author's name", "Content": "edited content", "Image": "link", "Date": "Date", "Edits": [{"Content": "edited content", "Date": "edit date", "Status": 2, "Editor": "editor"}]}''',
+        {
+            "Name":
+                "test-page",
+            "Author":
+                "Author's name",
+            "Content":
+                "edited content",
+            "Image":
+                "link",
+            "Date":
+                "Date",
+            "Edits": [{
+                "Content": "edited content",
+                "Date": "edit date",
+                "Status": 2,
+                "Editor": "editor"
+            }]
+        },
+        id="Accepted edit"),
+    pytest.param(
+        "Decline",
+        '''{"Name": "test-page", "Author": "Author's name", "Content": "Women in STEM", "Image": "link", "Date": "Date", "Edits": [{"Content": "edited content", "Date": "edit date", "Status": 3, "Editor": "editor"}]}''',
+        {
+            "Name":
+                "test-page",
+            "Author":
+                "Author's name",
+            "Content":
+                "Women in STEM",
+            "Image":
+                "link",
+            "Date":
+                "Date",
+            "Edits": [{
+                "Content": "edited content",
+                "Date": "edit date",
+                "Status": 3,
+                "Editor": "editor"
+            }]
+        },
+        id="Declined edit")
+])
+@patch('json.dumps')
+@patch('flaskr.backend.Backend.get_wiki_page')
+@patch('flaskr.backend.storage.Client')
+def test_author_edit_action(mock_client, mock_get_wiki_page, mock_json, action,
+                            result, page_data):
+
+    edited_page_data = {
+        "Name":
+            "test-page",
+        "Author":
+            "Author's name",
+        "Content":
+            "Women in STEM",
+        "Image":
+            "link",
+        "Date":
+            "Date",
+        "Edits": [{
+            "Content": "edited content",
+            "Date": "edit date",
+            "Status": 1,
+            "Editor": "editor"
+        }]
+    }
+    mock_json.return_value = result
+    mock_get_wiki_page.return_value = edited_page_data
+
+    mock_bucket = MagicMock()
+    mock_client.return_value.bucket.return_value = mock_bucket
+
+    backend = Backend(content_bucket="test-content-bucket")
+    backend.author_edit_action("test-page", action)
+
+    mock_client.assert_called_once()
+    mock_get_wiki_page.assert_called_once_with("test-page")
+    mock_bucket.blob.assert_called_once_with('uploaded-pages/test-page')
+    mock_bucket.blob.return_value.upload_from_string(
+        data=result, content_type="application/json")
+    mock_json.assert_called_once_with(page_data)

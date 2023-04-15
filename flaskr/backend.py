@@ -1,8 +1,11 @@
 from google.cloud import storage
 import hashlib, os, logging
 import json
+from werkzeug.utils import secure_filename
 
 DEFAULT_IMAGE_URL = "https://storage.cloud.google.com/wikis-content/DEFAULT%20IMG.png"
+
+
 class Backend:
     '''
         Backend class connects our web application with our google cloud storage.
@@ -36,13 +39,14 @@ class Backend:
         self.site_secret = "siam"
 
     def get_wiki_page(self, name):
+        '''
+            This method returns the data of a uploaded page. 
+
+        '''
         bucket = self.storage_client.bucket(self.content_bucket)
         # Ibby> Move this bucket prefix into a file level constant
         blob = bucket.blob('uploaded-pages/' + name)
-        
-        # with blob.open("r") as f:
-        #     return (f.read())
-        page_data = json.loads(blob.download_as_string())
+        page_data = json.loads(blob.download_as_text())
         return page_data
 
     def get_all_page_names(self):
@@ -60,12 +64,17 @@ class Backend:
                 nombre.append(page.name.split("uploaded-pages/")[1])
         return nombre
 
-    def upload_file(self, page_name, username,  user_file, upload_date, image_url=DEFAULT_IMAGE_URL):
+    def upload_file(self,
+                    page_name,
+                    username,
+                    user_file,
+                    upload_date,
+                    image_url=DEFAULT_IMAGE_URL):
         '''
         This method uploads a users file into the wiki content bucket.
         '''
         user_file.save(user_file.filename)
-        content = open(user_file.filename, "r")        
+        content = open(user_file.filename, "r")
 
         page_info = {
             "Name": page_name,
@@ -79,30 +88,29 @@ class Backend:
         page_json = json.dumps(page_info)
         bucket = self.storage_client.bucket(self.content_bucket)
         blob = bucket.blob('uploaded-pages/' + page_name)
-        
-        blob.upload_from_string(data=page_json, content_type="application/json")
-        
-        os.remove(user_file.filename)
 
+        blob.upload_from_string(data=page_json, content_type="application/json")
+
+        os.remove(user_file.filename)
 
     def edit_page_data(self, page_name, content, edit_date, editor):
         bucket = self.storage_client.bucket(self.content_bucket)
 
         blob = bucket.get_blob('uploaded-pages/' + page_name)
-        
-        page_data = json.loads(blob.download_as_string())
+
+        page_data = json.loads(blob.download_as_text())
 
         edit_data = {
             "Content": content,
             "Date": edit_date,
             "Status": 1,
-            "Editor": editor            
+            "Editor": editor
         }
-        
-        page_data["Edits"].append(edit_data)
-        blob.upload_from_string(data=json.dumps(page_data), content_type="application/json")
 
-            
+        page_data["Edits"].append(edit_data)
+        blob.upload_from_string(data=json.dumps(page_data),
+                                content_type="application/json")
+
     def get_users(self):
         '''
         This method returns a list of all user blobs.
@@ -187,26 +195,27 @@ class Backend:
         for blob in picture_lst:
             pic = bucket.get_blob(blob.name)
             #Ibby> remove prints
-            print(pic)
         return picture_lst
 
     def get_all_uploaded_pages(self):
-        bucket = self.storage_client.bucket(self.content_bucket)
-        blobs = list(bucket.list_blobs(prefix = "uploaded-pages/"))
+
+        blobs = list(
+            self.storage_client.list_blobs(self.content_bucket,
+                                           prefix="uploaded-pages/"))
         uploaded_pages = []
         for blob in blobs[1:]:
-            uploaded_pages.append(json.loads(blob.download_as_string()))
+            uploaded_pages.append(json.loads(blob.download_as_text()))
         return uploaded_pages
-        
+
     def get_user_edits(self, username):
-       
+
         uploaded_pages = self.get_all_uploaded_pages()
         user_edits = []
 
         for page in uploaded_pages:
             page["Edits"].reverse()
             for edit in page["Edits"]:
-                if edit["Editor"].lower() == username.lower():                      
+                if edit["Editor"].lower() == username.lower():
                     user_edit = {
                         "Name": page["Name"],
                         "Author": page["Author"],
@@ -214,11 +223,10 @@ class Backend:
                         "Edit": edit["Content"],
                         "Date": edit["Date"]
                     }
-                    print("1", user_edit["Edit"])
                     user_edits.append(user_edit)
 
         return user_edits
-    
+
     def get_user_pages_edits(self, username):
         uploaded_pages = self.get_all_uploaded_pages()
         user_pages = []
@@ -226,23 +234,19 @@ class Backend:
             if page["Author"].lower() == username.lower():
                 if len(page["Edits"]) > 0:
                     user_pages.append(page)
-        
-
-        user_pages.sort(key=lambda page: page["Edits"][-1]["Status"])
 
         return user_pages
 
-
-
     def author_edit_action(self, page_name, action):
-        page_data =  self.get_wiki_page(page_name)
+        page_data = self.get_wiki_page(page_name)
 
         if action == "Accept":
             page_data["Content"] = page_data['Edits'][-1]['Content']
-            page_data['Edits'][-1]['Status'] =  2
+            page_data['Edits'][-1]['Status'] = 2
         else:
-            page_data['Edits'][-1]['Status'] =  3
+            page_data['Edits'][-1]['Status'] = 3
 
         bucket = self.storage_client.bucket(self.content_bucket)
         blob = bucket.blob('uploaded-pages/' + page_name)
-        blob.upload_from_string(data=json.dumps(page_data), content_type="application/json")            
+        blob.upload_from_string(data=json.dumps(page_data),
+                                content_type="application/json")
