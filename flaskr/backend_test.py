@@ -158,20 +158,20 @@ def test_get_users(mock_storage):
 
 @patch('flaskr.backend.storage.Client')
 @patch('flaskr.backend.Backend.get_users', return_value={'mayo', 'samtest'})
-def test_check_user_user_does_not_exist(mock_users, mock_storage):
+def test_is_username_unique_true(mock_users, mock_storage):
     backend = Backend()
-    status = backend.check_user('wisdom')
+    status = backend.is_username_unique('wisdom')
 
-    assert not status
+    assert status
 
 
 @patch('flaskr.backend.storage.Client')
 @patch('flaskr.backend.Backend.get_users', return_value={'mayo', 'samtest'})
-def test_check_user_user_exists(mock_users, mock_storage):
+def test_is_username_unique_false(mock_users, mock_storage):
     backend = Backend()
-    status = backend.check_user('mayo')
+    status = backend.is_username_unique('mayo')
 
-    assert status
+    assert not status
 
 
 @patch('hashlib.blake2b')

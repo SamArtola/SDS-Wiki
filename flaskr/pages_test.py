@@ -175,7 +175,7 @@ def test_signup_get(client):
 
 
 @patch("flaskr.backend.storage")
-@patch("flaskr.backend.Backend.sign_up", return_value=(True, 'yvette'))
+@patch("flaskr.backend.Backend.sign_up")
 def test_signup_post(mock_backend, mock_storage, client):
     resp = client.post("/signup", data={'name': 'yvette', 'pwd': 'abc'})
     assert resp.status_code == 200
@@ -194,14 +194,14 @@ def test_signup_user_exist(mock_backend, client):
     mock_backend.is_username_unique()
     assert b"Ooops, that username is taken." in resp.data
 
+
 def test_fun_get(client):
     resp = client.get("/fun")
     assert resp.status_code == 200
     assert b"Have fun learning about notable women in STEM" in resp.data
 
+
 def test_createcard_get(client):
     resp = client.get('/createcard')
     assert resp.status_code == 200
     assert b"Create Flashcard" in resp.data
-
-
