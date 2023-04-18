@@ -50,7 +50,7 @@ def does_flashcard_exist(Backend, firstname, lastname):
         A boolean indicating if the flashcard exists or not.
     '''
     card_name = format_cardname(firstname, lastname)
-    flashcards = Backend.get_flashcards()
+    flashcards = get_flashcards(Backend)
 
     if card_name in flashcards:
         return True
