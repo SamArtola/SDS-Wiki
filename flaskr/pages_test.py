@@ -175,8 +175,9 @@ def test_signup_get(client):
 
 
 @patch("flaskr.backend.storage")
+@patch("flaskr.backend.Backend.is_username_unique", return_value=True)
 @patch("flaskr.backend.Backend.sign_up")
-def test_signup_post(mock_backend, mock_storage, client):
+def test_signup_post(mock_backend, mock_is_unique, mock_storage, client):
     resp = client.post("/signup", data={'name': 'yvette', 'pwd': 'abc'})
     assert resp.status_code == 200
     assert b"Hi, yvette" in resp.data
