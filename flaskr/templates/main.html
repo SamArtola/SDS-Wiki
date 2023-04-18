@@ -4,33 +4,9 @@
 <head>
     <head>
         <title>{% block page_name %}Women in Stem{% endblock %}</title>
+        <link rel="stylesheet" href="/static/style.css" />
     </head>
     {% block page_head %} {% endblock %}
-    <style>
-        body {
-            margin: 0px;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        .nav-bar{
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-end;
-            gap: 10px;
-            padding: 8px;
-            background: black;
-            color: white;
-        }
-        .nav-bar > p > a{
-            padding: 5px;
-            color: white;
-            text-decoration: none;
-        }
-        .nav-bar > p > a:hover{
-            text-decoration: underline;
-        }
-
-
-    </style>
 
 </head>
 
@@ -46,7 +22,7 @@
         <p><a href="{{ url_for('home') }}">Home</a></p>
         <p><a href="{{ url_for('page_index') }}">Pages</a></p>
         <p><a href="{{ url_for('about') }}">About</a></p>
-        <p><a href="{{ url_for('fun') }}">Fun</a></p>
+        <p><a href="{{ url_for('fun_get') }}">Fun</a></p>
 
         {% if 'username' in session %}
         <p><a href="{{ url_for('upload') }}">Upload</a></p>

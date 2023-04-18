@@ -4,30 +4,11 @@
 Create Card
 {% endblock %}
 {% block content %}
-<style>
-    a{
-        text-decoration: none;
-        color: black;
-    }
 
-    .button{
-        justify-content: center;
-        width: 40%;
-        display: inline-block;
-        font-family: 'Times New Roman', Times, serif;
-
-        padding: 10px;
-        background-color: rgb(134, 171, 247);
-        border-radius: 25px;
-    }
-
-    .button:hover{
-        background-color: aliceblue;
-    }
-</style>
-
-<div style="text-align: center; padding: 150px 0; background-color: aliceblue;">
+<div class="header">
     <h1>Create Flashcard</h1>
+</div>
+<div class="center">
     <form action="/createcard" method="POST">
         <div class="display_text">{{display_text}}</div><br>
         <label for="cardname">Woman in STEM</label><br><br>
@@ -39,7 +20,7 @@ Create Card
     </form>
     <br><br><br>
     <button id = "button" class= "button">
-        <a href="{{ url_for('fun') }}"> <h2>Return to Fun Page!</h2></a>
+        <a href="{{ url_for('fun_get') }}"> <h2>Return to Fun Page!</h2></a>
     </button>
 </div>
 
