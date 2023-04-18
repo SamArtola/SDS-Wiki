@@ -240,7 +240,7 @@ def test_edit_page_user_edits(mock_pages_edit, mock_user_edits, mock_json,
     mock_user_edits.return_value = [user_edit]
     with client.session_transaction() as session:
         session["username"] = "user"
-        session["showUserEdits"] = True
+        session["show_user_edits"] = True
     resp = client.get("/edit-page")
     assert resp.status_code == 200
     assert b'test-page' in resp.data
@@ -285,7 +285,7 @@ def test_edit_page_author_pages_edits(mock_pages_edit, mock_user_edits,
     mock_user_edits.return_value = [user_edit]
     with client.session_transaction() as session:
         session["username"] = "user"
-        session["showUserEdits"] = False
+        session["show_user_edits"] = False
     resp = client.get("/edit-page")
     assert resp.status_code == 200
     assert b'test-page' not in resp.data
@@ -333,40 +333,40 @@ def test_signup_user_exist(mock_backend, client):
 @patch("flaskr.backend.json")
 @patch("flaskr.backend.Backend.get_user_edits")
 @patch("flaskr.backend.Backend.get_user_pages_edits")
-def test_showUserEdits(mock_pages_edit, mock_user_edits, mock_json,
-                       mock_backend, client):
+def test_show_user_edits(mock_pages_edit, mock_user_edits, mock_json,
+                         mock_backend, client):
 
     with client.session_transaction() as sess:
         sess["username"] = "user"
-        sess["showUserEdits"] = False
+        sess["show_user_edits"] = False
 
     with client:
-        resp = client.get("/showUserEdits", follow_redirects=True)
+        resp = client.get("/show-user-edits", follow_redirects=True)
 
         assert len(resp.history) == 1
         assert resp.status_code == 200
         assert resp.request.path == "/edit-page"
-        assert session["showUserEdits"] == True
+        assert session["show_user_edits"] == True
 
 
 @patch("flaskr.backend.storage")
 @patch("flaskr.backend.json")
 @patch("flaskr.backend.Backend.get_user_edits")
 @patch("flaskr.backend.Backend.get_user_pages_edits")
-def test_showPageEdits(mock_pages_edit, mock_user_edits, mock_json,
-                       mock_backend, client):
+def test_show_page_edits(mock_pages_edit, mock_user_edits, mock_json,
+                         mock_backend, client):
 
     with client.session_transaction() as sess:
         sess["username"] = "user"
-        sess["showUserEdits"] = True
+        sess["show_user_edits"] = True
 
     with client:
-        resp = client.get("/showPageEdits", follow_redirects=True)
+        resp = client.get("/show-page-edits", follow_redirects=True)
 
         assert len(resp.history) == 1
         assert resp.status_code == 200
         assert resp.request.path == "/edit-page"
-        assert session["showUserEdits"] == False
+        assert session["show_user_edits"] == False
 
 
 @patch("flaskr.backend.storage")
@@ -389,11 +389,11 @@ def test_upload_edit_accepted(mock_edit_action, mock_pages_edit,
 
     with client.session_transaction() as session:
         session["username"] = "user"
-        session["showUserEdits"] = True
+        session["show_user_edits"] = True
 
     resp = client.post("/update-edit",
                        data={
-                           "editPageName": "test",
+                           "edit-page-name": "test",
                            "edit-action": "Accept",
                        },
                        follow_redirects=True)
@@ -425,11 +425,11 @@ def test_upload_edit_declined(mock_edit_action, mock_pages_edit,
 
     with client.session_transaction() as session:
         session["username"] = "user"
-        session["showUserEdits"] = True
+        session["show_user_edits"] = True
 
     resp = client.post("/update-edit",
                        data={
-                           "editPageName": "test",
+                           "edit-page-name": "test",
                            "edit-action": "Declined",
                        },
                        follow_redirects=True)

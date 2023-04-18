@@ -1,18 +1,61 @@
 from flask import render_template, request, session, redirect, url_for
 from flaskr.backend import Backend
-from flaskr.custom_filters import getStatusColor, getStatusName
+from functools import wraps
+from flaskr.custom_filters import get_status_color, get_status_name
 from datetime import date
 import time
+
+PAGE_EDITS = "Edits"
+EDIT_STATUS = "Status"
+PENDING = 1
+
+
+def is_logged_in(function):
+    ''' 
+            Is_logged_in is a decorator that ensures that users cannot access routes such as 
+            upload and edits which require user authentication without being logged in. 
+
+            Args:
+                function: the function to be wrapped by the decorator
+
+            Returns:
+                Redirects to the login page if user is not logged in, else
+                returns the function.
+        '''
+
+    @wraps(function)
+    def wrapped_function(*args, **kwargs):
+        if "username" not in session:
+            return redirect(url_for("login_get"))
+        return function(*args, **kwargs)
+
+    return wrapped_function
 
 
 #> Ibby: Please add method-level comments for all public methods
 def make_endpoints(app):
+    '''
+        Make_endpoints 
+    '''
     back_end = Backend()
-    app.add_template_filter(getStatusColor)
-    app.add_template_filter(getStatusName)
+
+    #Custom template filters to assign the appropriate color and name to a specific status.
+    app.add_template_filter(get_status_color)
+    app.add_template_filter(get_status_name)
 
     # Flask uses the "app.route" decorator to call methods when users
     # go to a specific route on the project's website.
+
+    def initialize_sessions(username):
+        '''
+            Initialize_sessions function set the session parameters in our code to the their
+            appropriate values whenever a user logs or signs in.
+
+            Args:
+                username: This is the username entered by tht user.            
+        '''
+        session["username"] = username
+        session["show_user_edits"] = True
 
     @app.route("/")
     def home():
@@ -25,25 +68,29 @@ def make_endpoints(app):
         return render_template('main.html')
 
     # TODO(Project 1): Implement additional routes according to the project requirements.
-    @app.route('/upload', methods=['GET', 'POST'])
-    def upload():
+
+    @app.route('/upload', methods=['GET'])
+    @is_logged_in
+    def upload_get():
+        return render_template('/upload.html')
+
+    @app.route('/upload', methods=['POST'])
+    @is_logged_in
+    def upload_post():
         #Ibby> Consider splitting into separate methods for get and post
-        if 'username' not in session:
-            return redirect("/signup")
 
-        if request.method == "POST":
-            backend = Backend()
-            page_name = request.form["page_name"]
-            image_url = request.form["image_url"]
-            user_file = request.files['file']
-            username = session['username'].lower()
-            upload_date = date.today().strftime("%m/%d/%Y")
+        backend = Backend()
+        page_name = request.form["page_name"]
+        image_url = request.form["image_url"]
+        user_file = request.files['file']
+        username = session['username'].lower()
+        upload_date = date.today().strftime("%m/%d/%Y")
 
-            if image_url:
-                backend.upload_file(page_name, username, user_file, upload_date,
-                                    image_url)
-            else:
-                backend.upload_file(page_name, username, user_file, upload_date)
+        if image_url:
+            backend.upload_file(page_name, username, user_file, upload_date,
+                                image_url)
+        else:
+            backend.upload_file(page_name, username, user_file, upload_date)
             #>Ibby consider passing in the page header name instead of defining it in the template.
         return render_template('/upload.html')
 
@@ -56,8 +103,6 @@ def make_endpoints(app):
 
     @app.route('/signup', methods=['GET'])
     def signup_get():
-        if 'username' in session:
-            return redirect("/logout")
 
         return render_template('/signup.html')
 
@@ -76,8 +121,7 @@ def make_endpoints(app):
             display_text = "Ooops, that username is taken."
 
         else:
-            session['username'] = username
-            session["showUserEdits"] = True
+            initialize_sessions(username)
             back_end.sign_up(username, password)
             display_text = "Successfully registered!"
             return render_template('main.html',
@@ -94,11 +138,29 @@ def make_endpoints(app):
 
     @app.route('/pages/<curpage>', methods=['GET', 'PUT'])
     def show_wiki(curpage):
+        '''
+            Show_wiki function displays the content of an uploaded page. 
+
+            The show_wiki function would display the content of an uploaded page,
+            along with the date it was uploaded, the author/uploaders name, page name, 
+            and the page's display image if one was uploaded. If not, the defaut display image would
+            be shown. The show_wiki function would also enable the user to make an edit on the current page if
+            the page being displayed doesn't already havea pending edit, i.e an edit that the 
+            author of the page hasn't reviewed, the edit button would be disabled. 
+            This is so that a page can only have a single pending edit.
+
+            Args:
+                curpage: the name of the page.
+
+            Returns:
+                A template rendered from pages.html file with the page's data.     
+        '''
         backend = Backend()
         page = curpage
         page_data = backend.get_wiki_page(page)
 
-        if page_data["Edits"] and page_data["Edits"][-1]["Status"] == 1:
+        if page_data[PAGE_EDITS] and page_data[PAGE_EDITS][-1][
+                EDIT_STATUS] == PENDING:
             edit_button = False
         else:
             edit_button = True
@@ -127,8 +189,6 @@ def make_endpoints(app):
             Returns:
                 A template rendered from the login.html file to the assigned "/login" route.
         """
-        if 'username' in session:
-            return redirect("/logout")
 
         return render_template('login.html')
 
@@ -152,8 +212,7 @@ def make_endpoints(app):
         signed_in, err = back_end.sign_in(username, password)
 
         if signed_in:
-            session["showUserEdits"] = True
-            session['username'] = username
+            initialize_sessions(username)
             return redirect(url_for('home'))
         return render_template('login.html', err_message=err)
 
@@ -203,9 +262,8 @@ def make_endpoints(app):
         return render_template('/joy_buolamwini.html')
 
     @app.route('/edit-form', methods=['POST'])
+    @is_logged_in
     def edit_form():
-        if 'username' not in session:
-            return redirect("/signup")
 
         page_name = request.form["page-name"]
         editor = request.form["editor"].lower()
@@ -219,9 +277,8 @@ def make_endpoints(app):
         return redirect(page_url)
 
     @app.route('/edit-page', methods=['GET', 'PUT'])
+    @is_logged_in
     def edit_page():
-        if 'username' not in session:
-            return redirect("/signup")
         username = session['username']
 
         user_edits = back_end.get_user_edits(username)
@@ -231,28 +288,25 @@ def make_endpoints(app):
                                user_edits_list=user_edits,
                                page_edits=user_page_edits)
 
-    @app.route('/showUserEdits')
-    def showUserEdits():
-        if 'username' not in session:
-            return redirect("/login")
+    @app.route('/show-user-edits')
+    @is_logged_in
+    def show_user_edits():
 
-        session["showUserEdits"] = True
+        session["show_user_edits"] = True
         return redirect("/edit-page")
 
-    @app.route('/showPageEdits')
-    def showPageEdits():
-        if 'username' not in session:
-            return redirect("/login")
+    @app.route('/show-page-edits')
+    @is_logged_in
+    def show_page_edits():
 
-        session["showUserEdits"] = False
+        session["show_user_edits"] = False
         return redirect("/edit-page")
 
     @app.route('/update-edit', methods=['POST'])
+    @is_logged_in
     def update_edit():
-        if 'username' not in session:
-            return redirect("/signup")
 
-        page_name = request.form['editPageName']
+        page_name = request.form['edit-page-name']
         edit_action = request.form['edit-action']
 
         back_end.author_edit_action(page_name, edit_action)

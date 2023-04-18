@@ -4,6 +4,26 @@ import json
 from werkzeug.utils import secure_filename
 
 DEFAULT_IMAGE_URL = "https://storage.cloud.google.com/wikis-content/DEFAULT%20IMG.png"
+SITE_SECRET = "siam"
+
+# Content bucket folders
+USER_PASSWORD_FOLDER = "users-data/"
+UPLOADED_PAGES_FOLDER = "uploaded-pages/"
+
+# Uploaded page access keys
+PAGE_EDITS = "Edits"
+PAGE_NAME = "Name"
+PAGE_CONTENT = "Content"
+EDIT_CONTENT = "Content"
+PAGE_AUTHOR = "Author"
+DATE = "Date"
+EDIT_STATUS = "Status"
+EDIT_AUTHOR = "Editor"
+
+# Page edit status keys
+PENDING = 1
+ACCEPTED = 2
+DECLINED = 3
 
 
 class Backend:
@@ -34,9 +54,6 @@ class Backend:
         self.storage_client = storage.Client()
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
-        # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
-        self.bucket_prefix = "users-data/"
-        self.site_secret = "siam"
 
     def get_wiki_page(self, name):
         '''
@@ -45,7 +62,7 @@ class Backend:
         '''
         bucket = self.storage_client.bucket(self.content_bucket)
         # Ibby> Move this bucket prefix into a file level constant
-        blob = bucket.blob('uploaded-pages/' + name)
+        blob = bucket.blob(UPLOADED_PAGES_FOLDER + name)
         page_data = json.loads(blob.download_as_text())
         return page_data
 
@@ -55,13 +72,13 @@ class Backend:
         '''
         nombre = []
         bucket = self.storage_client.bucket(self.content_bucket)
-        pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
+        pages = set(bucket.list_blobs(prefix=UPLOADED_PAGES_FOLDER))
         for page in pages:
-            name = page.name.split("uploaded-pages/")[1]
+            name = page.name.split(UPLOADED_PAGES_FOLDER)[1]
             if name == '':
                 continue
             else:
-                nombre.append(page.name.split("uploaded-pages/")[1])
+                nombre.append(page.name.split(UPLOADED_PAGES_FOLDER)[1])
         return nombre
 
     def upload_file(self,
@@ -71,7 +88,19 @@ class Backend:
                     upload_date,
                     image_url=DEFAULT_IMAGE_URL):
         '''
-        This method uploads a users file into the wiki content bucket.
+            Upload_file method allows users to upload a wiki page.
+
+            It accepts a page name, display image link and a file which holds the page content from the user
+            and uploads it to the uploaded-pages folder in our content bucket.
+
+            Args:
+                page_name: name for the page to be created from the user's content.
+                username:  username of the user.
+                user_file: a .txt extension file that contains the content to be displayed on the page.
+                upload_datee: date of the upload
+                image_url: display image url for the page. This would be set to a default image if the user did not upload one.
+
+            
         '''
         user_file.save(user_file.filename)
         content = open(user_file.filename, "r")
@@ -87,7 +116,7 @@ class Backend:
         content.close()
         page_json = json.dumps(page_info)
         bucket = self.storage_client.bucket(self.content_bucket)
-        blob = bucket.blob('uploaded-pages/' + page_name)
+        blob = bucket.blob(UPLOADED_PAGES_FOLDER + page_name)
 
         blob.upload_from_string(data=page_json, content_type="application/json")
 
@@ -96,7 +125,7 @@ class Backend:
     def edit_page_data(self, page_name, content, edit_date, editor):
         bucket = self.storage_client.bucket(self.content_bucket)
 
-        blob = bucket.get_blob('uploaded-pages/' + page_name)
+        blob = bucket.get_blob(UPLOADED_PAGES_FOLDER + page_name)
 
         page_data = json.loads(blob.download_as_text())
 
@@ -117,9 +146,9 @@ class Backend:
         '''
         users = set()
         bucket = self.storage_client.bucket(self.user_bucket)
-        blobs = bucket.list_blobs(prefix=self.bucket_prefix)
+        blobs = bucket.list_blobs(prefix=USER_PASSWORD_FOLDER)
         for blob in blobs:
-            users.add(blob.name.removeprefix(self.bucket_prefix))
+            users.add(blob.name.removeprefix(USER_PASSWORD_FOLDER))
 
         return users
 
@@ -129,7 +158,7 @@ class Backend:
         '''
         # Ibby> Consider lowering before passing to the backend in all cases
         user_name = username.lower()
-        with_salt = f"{user_name}{self.site_secret}{password}"
+        with_salt = f"{user_name}{SITE_SECRET}{password}"
         hashed_pwd = hashlib.blake2b(with_salt.encode()).hexdigest()
 
         return hashed_pwd
@@ -154,7 +183,7 @@ class Backend:
         '''
         user_name = username.lower()
         bucket = self.storage_client.bucket(self.user_bucket)
-        new_user = bucket.blob(self.bucket_prefix + user_name)
+        new_user = bucket.blob(USER_PASSWORD_FOLDER + user_name)
         hashed_pwd = self.hash_pwd(user_name, password)
 
         with new_user.open("w") as f:
@@ -176,7 +205,7 @@ class Backend:
             A boolean indicating if the sign in was successful and an error message if the sign in was not successful. 
         '''
         bucket = self.storage_client.bucket(self.user_bucket)
-        blob_obj = bucket.get_blob(f"{self.bucket_prefix}{username}")
+        blob_obj = bucket.get_blob(f"{USER_PASSWORD_FOLDER}{username}")
         if blob_obj:
             hashed_password = self.hash_pwd(username, password)
             content = blob_obj.download_as_text()
@@ -198,55 +227,101 @@ class Backend:
         return picture_lst
 
     def get_all_uploaded_pages(self):
+        '''
+            Get_all_uploaded_pages method gets all the pages that have been uploaded
+            in our wiki.
+
+            Returns:
+                A list of json objects which hold the data of all uploaded pages.
+                They contain the name, author, date uploaded,page's content, author's username 
+                and a list of dictionaries which contain the information of all edits made to the page.
+
+        '''
 
         blobs = list(
             self.storage_client.list_blobs(self.content_bucket,
-                                           prefix="uploaded-pages/"))
+                                           prefix=UPLOADED_PAGES_FOLDER))
         uploaded_pages = []
         for blob in blobs[1:]:
             uploaded_pages.append(json.loads(blob.download_as_text()))
         return uploaded_pages
 
     def get_user_edits(self, username):
+        '''
+            Get_user_edits function gets all the edits a user has suggested in any of the uploaded
+            wiki pages.
+
+            Args:
+                username: This is the username of the user
+
+            Returns:
+                A list of dictionaries containing the name of the page the user made an edit on,
+                the page author's name, the status of the user edit, the edited content
+                suggested by the user, and the date of the edit.
+        '''
 
         uploaded_pages = self.get_all_uploaded_pages()
         user_edits = []
 
         for page in uploaded_pages:
-            page["Edits"].reverse()
-            for edit in page["Edits"]:
-                if edit["Editor"].lower() == username.lower():
+            page[PAGE_EDITS].reverse()
+            for edit in page[PAGE_EDITS]:
+                if edit[EDIT_AUTHOR].lower() == username.lower():
                     user_edit = {
-                        "Name": page["Name"],
-                        "Author": page["Author"],
-                        "Status": edit["Status"],
-                        "Edit": edit["Content"],
-                        "Date": edit["Date"]
+                        "Name": page[PAGE_NAME],
+                        "Author": page[PAGE_AUTHOR],
+                        "Status": edit[EDIT_STATUS],
+                        "Edit": edit[EDIT_CONTENT],
+                        "Date": edit[DATE]
                     }
                     user_edits.append(user_edit)
 
         return user_edits
 
     def get_user_pages_edits(self, username):
+        '''
+            Get_user_pages_edits function gets all the edits made on all of the pages a user has uploaded 
+            (authored) to the wiki. 
+
+            Args:
+                username: username of the user.
+
+            Returns:
+                A list of json objects which contain the name of the page, author's name (user), 
+                page content, date of upload, the page's display image url, and a list of dictionaries
+                which contain all edits ever made on the page. The dictionaries comprises
+                of the editor's name, the date of the edit, the status of the edit and the edited content.
+        '''
         uploaded_pages = self.get_all_uploaded_pages()
         user_pages = []
         for page in uploaded_pages:
-            if page["Author"].lower() == username.lower():
-                if len(page["Edits"]) > 0:
+            if page[PAGE_AUTHOR].lower() == username.lower():
+                if len(page[PAGE_EDITS]) > 0:
                     user_pages.append(page)
 
         return user_pages
 
     def author_edit_action(self, page_name, action):
+        '''
+            Author_edit_action fucntion updates the a page's json object according to the 
+            action the author of a page decides on an edit made on the page. 
+
+            The author can choose to accept or decline an edit. The author_edit_action
+            sets the status of the edit to the author's decision.
+
+            Args:
+                page_name: name of the page.
+                action: the actor's decision on the edit.               
+        '''
         page_data = self.get_wiki_page(page_name)
 
         if action == "Accept":
-            page_data["Content"] = page_data['Edits'][-1]['Content']
-            page_data['Edits'][-1]['Status'] = 2
+            page_data[PAGE_CONTENT] = page_data[PAGE_EDITS][-1][EDIT_CONTENT]
+            page_data[PAGE_EDITS][-1][EDIT_STATUS] = ACCEPTED
         else:
-            page_data['Edits'][-1]['Status'] = 3
+            page_data[PAGE_EDITS][-1][EDIT_STATUS] = DECLINED
 
         bucket = self.storage_client.bucket(self.content_bucket)
-        blob = bucket.blob('uploaded-pages/' + page_name)
+        blob = bucket.blob(UPLOADED_PAGES_FOLDER + page_name)
         blob.upload_from_string(data=json.dumps(page_data),
                                 content_type="application/json")
