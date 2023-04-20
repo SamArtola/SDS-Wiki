@@ -288,6 +288,11 @@ def make_endpoints(app):
                                user_edits_list=user_edits,
                                page_edits=user_page_edits)
 
+    @app.route('/translation')
+    @is_logged_in
+    def upload_translation():
+        return render_template("translation.html")
+
     @app.route('/show-user-edits')
     @is_logged_in
     def show_user_edits():
@@ -316,3 +321,5 @@ def make_endpoints(app):
     @app.errorhandler(404)
     def page_not_found(e):
         return render_template('404.html'), 404
+
+    

@@ -455,3 +455,21 @@ def test_is_logged_in(client):
         assert False
 
     assert_false
+
+def test_upload_translation(client):
+    with client.session_transaction() as session:
+        session["username"] = "user"
+        session["show_user_edits"] = True
+
+    resp = client.get("/translation")
+
+    assert resp.request.path == "/translation"
+    assert resp.status_code == 200
+    assert b"Please enter new translations:" in resp.data
+    
+    
+
+
+
+
+
