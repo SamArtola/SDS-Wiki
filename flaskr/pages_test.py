@@ -1,6 +1,7 @@
 from flaskr import create_app
 from unittest.mock import patch, MagicMock, Mock
 from flask import session
+from flaskr.pages import is_logged_in
 from flaskr.backend import Backend
 import pytest, io
 from google.cloud import storage
@@ -445,3 +446,12 @@ def test_page_not_found(client):
     resp = client.get("/random-page")
     assert resp.status_code == 404
     assert b"The page you are looking for does not exist" in resp.data
+
+
+def test_is_logged_in(client):
+
+    @is_logged_in
+    def assert_false():
+        assert False
+
+    assert_false

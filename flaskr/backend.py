@@ -61,7 +61,6 @@ class Backend:
 
         '''
         bucket = self.storage_client.bucket(self.content_bucket)
-        # Ibby> Move this bucket prefix into a file level constant
         blob = bucket.blob(UPLOADED_PAGES_FOLDER + name)
         page_data = json.loads(blob.download_as_text())
         return page_data
