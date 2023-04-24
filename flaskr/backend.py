@@ -1,5 +1,5 @@
 from google.cloud import storage
-import hashlib, os
+import hashlib, os, json
 
 
 class Backend:
@@ -35,34 +35,78 @@ class Backend:
         self.card_prefix = "flashcards/"
         self.site_secret = "siam"
 
-    def get_wiki_page(self, name):
-        bucket = self.storage_client.bucket(self.content_bucket)
-        # Ibby> Move this bucket prefix into a file level constant
-        blob = bucket.blob('uploaded-pages/' + name)
-        with blob.open("r") as f:
-            return (f.read())
+    #Constant Variable
+    EN_ES_BUCKET_ADDRESS = 'translations/en-es.json'
+
+    def get_content_bucket(self):
+        return self.storage_client.bucket(self.content_bucket)
+
+    def get_content_blob(self, filename):
+        return self.get_content_bucket().blob(filename)
+
+    def add_translations(self,
+                         word1,
+                         word2,
+                         translation_bucket=EN_ES_BUCKET_ADDRESS):
+        jsonblob = self.get_content_blob(translation_bucket)
+
+        with jsonblob.open("r") as json_file:
+            data = json.load(json_file)
+
+        with jsonblob.open("w") as json_file:
+            if word1 not in data:
+                data[word1] = word2
+
+            json.dump(data, json_file)
+
+    def translate_page(self,
+                       content,
+                       lang,
+                       translation_bucket=EN_ES_BUCKET_ADDRESS):
+        if lang == "EN":
+            return content
+        lines = []
+        file_content = content.split()
+
+        #OPEN/LOAD JSON DATA WITH EN-ES TRANSLATIONS
+        jsonblob = self.get_content_blob(translation_bucket)
+
+        with jsonblob.open("r") as json_file:
+            data = json.load(json_file)
+            for word in file_content:
+                if word in data:
+                    word = data[word]
+                lines.append(word)
+
+            return " ".join(lines)
+
+    def get_wiki_page(self, name, lang):
+
+        blob = self.get_content_bucket().blob('uploaded-pages/' + name)
+        data = json.loads(blob.download_as_string())
+
+        return self.translate_page(data["Content"], lang)
 
     def get_all_page_names(self):
         '''
         This method is used to list links to uploaded wiki content.
         '''
         nombre = []
-        bucket = self.storage_client.bucket(self.content_bucket)
-        pages = set(bucket.list_blobs(prefix='uploaded-pages/'))
+        pages = set(
+            self.get_content_bucket().list_blobs(prefix='uploaded-pages/'))
         for page in pages:
             name = page.name.split("uploaded-pages/")[1]
             if name == '':
                 continue
-            else:
-                nombre.append(page.name.split("uploaded-pages/")[1])
+            nombre.append(name)
         return nombre
 
     def upload_file(self, file):
         '''
         This method uploads a users file into the wiki content bucket.
         '''
-        bucket = self.storage_client.bucket(self.content_bucket)
-        new_file = bucket.blob('uploaded-pages/' + file.filename)
+        new_file = self.get_content_bucket().blob('uploaded-pages/' +
+                                                  file.filename)
         file.save(file.filename)
         new_file.upload_from_filename(file.filename)
         os.remove(file.filename)
