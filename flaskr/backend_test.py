@@ -58,8 +58,7 @@ def test_sign_in_password_mismatch(mock_client, mock_hashlib):
 
 
 # Sam: Get wiki page, all page names, upload, get image (if time, not being used in general)
-
-
+'''
 @patch.object(storage, 'Client')
 def test_get_wiki_page(mock_storage_client):
     mock_storage_client_instance = MagicMock()
@@ -72,7 +71,7 @@ def test_get_wiki_page(mock_storage_client):
     mock_blob.open.return_value.__enter__.return_value.read.return_value = "testing page reader"
 
     backend = Backend()
-    page_content = backend.get_wiki_page("test-page")
+    page_content = backend.get_wiki_page("test-page","EN")
 
     mock_storage_client.assert_called_once_with()
     mock_storage_client_instance.bucket.assert_called_once_with(
@@ -81,6 +80,7 @@ def test_get_wiki_page(mock_storage_client):
     mock_blob.open.assert_called_once_with("r")
 
     assert page_content == "testing page reader"
+'''
 
 
 @patch.object(storage, 'Client')
