@@ -5,6 +5,8 @@
     <head>
         <title>{% block page_name %}Women in Stem{% endblock %}</title>
         <link rel="stylesheet" href="/static/main.css" />
+        <link rel="stylesheet" href="/static/style.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     </head>
     {% block page_head %} {% endblock %}
 
@@ -25,7 +27,9 @@
         <p><a href="{{ url_for('fun_get') }}">Fun</a></p>
 
         {% if 'username' in session %}
-        <p><a href="{{ url_for('upload') }}">Upload</a></p>
+        <p><a href="{{ url_for('upload_get') }}">Upload</a></p>
+        <p><a href="{{ url_for('edit_page') }}">Activity</a></p>
+        <p><a href="{{ url_for('upload_translation') }}">Translation</a></p>
         <p><a href="{{ url_for('logout') }}">Logout</a></p>
         {% else %}
         <p><a href="{{ url_for('signup_get') }}">Sign Up</a></p>

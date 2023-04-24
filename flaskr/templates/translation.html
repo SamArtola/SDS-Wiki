@@ -1,0 +1,50 @@
+{% extends "main.html" %}
+
+{% block page_name %}
+Translation
+{% endblock %}
+
+{% block content %}
+<div style= "display:flex; align-items: center; flex-direction: column; margin-top:50px">
+<p>
+    Thank you for helping improve our website!
+</p>
+<p>
+    Please enter new translations:
+</p>
+<form>
+    <div class="col" style = "padding:20px;">
+        <div class="form-group">
+            <label for="from">Choose language: </label>
+            <select class="form-select" aria-label="from"  name="from" id="from">
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+            </select>
+            </div>
+    
+            <div class="form-group">
+            <label for="word">Word</label>
+            <textarea class="form-control" id="word" rows="3"></textarea>
+            </div>
+        </div>
+
+    <div class="col" style = "padding:20px;">
+    <div class="form-group">
+        <label for="to">Choose language: </label>
+        <select class="form-select" aria-label="to"  name="to" id="to">
+            <option value="English">English</option>
+            <option value="Spanish">Spanish</option>
+        </select>
+        </div>
+
+        <div class="form-group">
+        <label for="translation">Translation</label>
+        <textarea class="form-control" id="translation" rows="3"></textarea>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+</div>
+{% endblock %}
