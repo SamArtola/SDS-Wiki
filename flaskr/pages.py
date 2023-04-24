@@ -1,5 +1,6 @@
 from flask import render_template, request, session, redirect, url_for
 from flaskr.backend import Backend
+from flaskr.flashcard import *
 
 
 #> Ibby: Please add method-level comments for all public methods
@@ -41,7 +42,6 @@ def make_endpoints(app):
 
     @app.route('/signup', methods=['POST'])
     def signup_post():
-        back_end = Backend()
         display_text = ''
 
         username = request.form['name']
@@ -50,7 +50,7 @@ def make_endpoints(app):
         if not username or not password:
             display_text = "Please fill all required fields"
 
-        elif back_end.check_user(username):
+        elif not back_end.is_username_unique(username):
             display_text = "Ooops, that username is taken."
 
         else:
@@ -162,3 +162,56 @@ def make_endpoints(app):
                 A template rendered from the joy_buolamwini.html file to the assigned '/pages/joy_buolamwini' route.
         '''
         return render_template('/joy_buolamwini.html')
+
+    @app.route('/fun', methods=['GET'])
+    def fun_get():
+        card_list = [
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+        ]
+
+        return render_template('/fun.html',
+                               card_list=card_list,
+                               show_modal="none")
+
+    @app.route('/fun', methods=['POST'])
+    def fun_post():
+        card_list = [
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+        ]
+
+        current_card = request.form['current']
+        show_modal = request.form['showModal']
+
+        card_name = get_card_name(back_end, current_card)
+        matching_card = get_formatted_display_name(back_end, card_name)
+        matching_info = get_card_display_info(back_end, card_name)
+
+        return render_template('/fun.html',
+                               card_list=card_list,
+                               matching_card=matching_card,
+                               matching_info=matching_info,
+                               show_modal=show_modal)
+
+    @app.route('/createcard', methods=['GET'])
+    def createcard_get():
+        return render_template('/createcard.html')
+
+    @app.route('/createcard', methods=['POST'])
+    def createcard_post():
+
+        firstname = request.form['firstname']
+        lastname = request.form['lastname']
+        card_content = request.form['contribution']
+
+        if does_flashcard_exist(back_end, firstname, lastname):
+            display_text = get_alert_message(back_end, firstname, lastname)
+
+        else:
+            display_text = get_alert_message(back_end, firstname, lastname)
+            create_card(back_end, firstname, lastname, card_content)
+            return render_template('/createcard.html',
+                                   display_text=display_text)
+
+        return render_template('/createcard.html', display_text=display_text)

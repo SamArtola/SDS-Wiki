@@ -1,0 +1,80 @@
+{% extends "main.html" %}
+
+{% block page_name %}
+Fun
+{% endblock %}
+{% block content %}
+
+<div class = "fun-header">
+    <h1 class = "header-text">Have fun learning about notable women in STEM!</h1>
+</div>
+
+<div class="row">
+    {% for card in card_list %}
+    <div class="column">
+        <form method = "POST" id="current_letter">
+            <li style="list-style-type: none;" class="card" id={{card}} onclick=add_id({id});>     
+            <h2 id = {{card}} class ="cardletter">{{card}}</h2>
+            <label for="current"></label><br>
+            <input type="hidden" name="current" value={{curr}} />
+            <label for="showModal"></label><br>
+            <input type="hidden" name="showModal" value={{curr}} />
+        </li>
+        </form>
+    </div>
+    {%endfor%} 
+</div>
+
+<div class=low-nav>
+    <button id = "button" class= "button">
+        <a href="{{ url_for('createcard_get') }}"> <h2>Create Flashcard</h2></a>
+    </button>
+    <button class= "button" onclick=display>
+        <h2>Play Trivia</h2>
+    </button>
+</div>
+
+{% if show_modal == "block" %}
+<div class="modal" id="flashcard">
+    <div class="modal-content animate" method="POST">
+        <div class="imgcontainer">
+            <span onclick="document.getElementById('flashcard').style.display='none'" 
+            class="close" title="Close Modal">&times;</span>
+        </div>
+        <div class="container" style="text-align: center">
+            <h1>{{matching_card}}</h1>
+            <h2>{{matching_info}}</h2>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<script>
+    var modal = document.getElementById("flashcard");
+    
+    const cards = [];
+
+    add_id = function(curr){
+        cards.push(curr)
+        var curr = cards[0]
+
+        var formInfo = document.forms['current_letter'];
+        
+        formInfo.current.value = curr.id;
+        formInfo.showModal.value = "block";
+        document.getElementById("current_letter").submit();
+    }
+    
+    var span = document.getElementsByClassName("close")[0];
+    if(span != undefined){
+        span.onclick = function() {
+        
+        var formInfo = document.forms['current_letter'];
+        formInfo.showModal.value = "none";
+        document.getElementById("current_letter").submit();     
+        }
+    }
+
+</script>
+{% endblock %}

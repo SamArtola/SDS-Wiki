@@ -174,10 +174,13 @@ def test_signup_get(client):
     assert b"Re-enter Password" in resp.data
 
 
-def ignored_test_signup_post(client):
-    resp = client.post("/signup", data={'name': 'Mayo', 'pwd': 'abc'})
+@patch("flaskr.backend.storage")
+@patch("flaskr.backend.Backend.is_username_unique", return_value=True)
+@patch("flaskr.backend.Backend.sign_up")
+def test_signup_post(mock_backend, mock_is_unique, mock_storage, client):
+    resp = client.post("/signup", data={'name': 'yvette', 'pwd': 'abc'})
     assert resp.status_code == 200
-    assert b"Hi, Mayo" in resp.data
+    assert b"Hi, yvette" in resp.data
 
 
 def test_signup_post_incomplete_form(client):
@@ -186,8 +189,20 @@ def test_signup_post_incomplete_form(client):
     assert b"Please fill all required fields" in resp.data
 
 
-@patch("flaskr.backend.Backend.check_user", return_value=True)
+@patch("flaskr.backend.Backend.is_username_unique", return_value=False)
 def test_signup_user_exist(mock_backend, client):
     resp = client.post("/signup", data={'name': 'Mayo', 'pwd': 'abc'})
-    mock_backend.check_user()
+    mock_backend.is_username_unique()
     assert b"Ooops, that username is taken." in resp.data
+
+
+def test_fun_get(client):
+    resp = client.get("/fun")
+    assert resp.status_code == 200
+    assert b"Have fun learning about notable women in STEM" in resp.data
+
+
+def test_createcard_get(client):
+    resp = client.get('/createcard')
+    assert resp.status_code == 200
+    assert b"Create Flashcard" in resp.data

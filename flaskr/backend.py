@@ -32,6 +32,7 @@ class Backend:
         self.content_bucket = content_bucket
         # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
         self.bucket_prefix = "users-data/"
+        self.card_prefix = "flashcards/"
         self.site_secret = "siam"
 
     def get_wiki_page(self, name):
@@ -89,16 +90,17 @@ class Backend:
 
         return hashed_pwd
 
-    # Ibby> is_username_unique is a better function
-    def check_user(self, username):
+    def is_username_unique(self, username):
         '''
         This method is used to check if a username is valid.
-        If an account exists with the user name, it returns True, otherwise, it returns False.
+        If an account exists with the user name, it returns False, otherwise, it returns True.
         '''
+        user_name = username.lower()
         user_list = self.get_users()
 
-        if username not in user_list:
+        if user_name in user_list:
             return False
+
         return True
 
     def sign_up(self, username, password):
@@ -107,7 +109,7 @@ class Backend:
         as an object in the users-data folder in the user_bucket.
         This object contains the hashed password
         '''
-        user_name = username.lower()
+        user_name = (username.strip()).lower()
         bucket = self.storage_client.bucket(self.user_bucket)
         new_user = bucket.blob(self.bucket_prefix + user_name)
         hashed_pwd = self.hash_pwd(user_name, password)
