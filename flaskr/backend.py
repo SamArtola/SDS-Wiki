@@ -55,6 +55,24 @@ class Backend:
         self.user_bucket = user_bucket
         self.content_bucket = content_bucket
 
+    EN_ES_BUCKET_ADDRESS = 'translations/en-es.json'
+
+    def add_translations(self,
+                         word1,
+                         word2,
+                         translation_bucket=EN_ES_BUCKET_ADDRESS):
+        jsonblob = self.storage_client.bucket(
+            self.content_bucket).blob(translation_bucket)
+
+        with jsonblob.open("r") as json_file:
+            data = json.load(json_file)
+
+        with jsonblob.open("w") as json_file:
+            if word1 not in data:
+                data[word1] = word2
+
+            json.dump(data, json_file)
+
     def get_wiki_page(self, name):
         '''
             This method returns the data of a uploaded page. 

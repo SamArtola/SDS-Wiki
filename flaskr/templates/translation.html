@@ -12,7 +12,8 @@ Translation
 <p>
     Please enter new translations:
 </p>
-<form>
+<form action="/translation" method="POST">
+
     <div class="col" style = "padding:20px;">
         <div class="form-group">
             <label for="from">Choose language: </label>
@@ -24,7 +25,7 @@ Translation
     
             <div class="form-group">
             <label for="word">Word</label>
-            <textarea class="form-control" id="word" rows="3"></textarea>
+            <textarea class="form-control" id="word" name="word" rows="3"></textarea>
             </div>
         </div>
 
@@ -39,10 +40,16 @@ Translation
 
         <div class="form-group">
         <label for="translation">Translation</label>
-        <textarea class="form-control" id="translation" rows="3"></textarea>
+        <textarea class="form-control" id="translation" name="translation" rows="3"></textarea>
         </div>
     </div>
-
+    {% if display_text%}
+        {% if "Successfully" in display_text %}
+            <div class="success"><strong>SUCCESS </strong>{{display_text}}!!!</div><br>
+        {% else %}
+            <div class="alert"><strong>ERROR </strong>{{display_text}}!!!</div><br>
+        {% endif %}
+    {% endif %}
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
 

@@ -288,10 +288,33 @@ def make_endpoints(app):
                                user_edits_list=user_edits,
                                page_edits=user_page_edits)
 
-    @app.route('/translation')
+    @app.route('/translation', methods=['GET'])
     @is_logged_in
-    def upload_translation():
+    def upload_translation_get():
         return render_template("translation.html")
+
+    @app.route('/translation', methods=['POST'])
+    @is_logged_in
+    def upload_translation_post():
+        display_text = None
+
+        lang1 = request.form['from']
+        lang2 = request.form.get('to')
+        word = request.form.get('word')
+        translation = request.form.get('translation')
+
+        if lang1 == lang2:
+            display_text = f"Translation languages cannot be the same. {word}"
+        elif not word or not translation:
+            display_text = "Please enter a word/translation in the corresponding boxes"
+        else:
+            if lang1 == "English":
+                back_end.add_translations(word, translation)
+            else:
+                back_end.add_translations(translation, word)
+            display_text = "Translations Successfully submitted"
+
+        return render_template("translation.html", display_text=display_text)
 
     @app.route('/show-user-edits')
     @is_logged_in
