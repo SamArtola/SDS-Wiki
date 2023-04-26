@@ -63,7 +63,7 @@ a{
     padding-left: 120px; 
     padding-bottom: 50px;
 }
-.card {
+.flashcard {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
   justify-content: center;
   padding: 3px;
@@ -71,7 +71,7 @@ a{
   text-align: center;
   background-color: rgb(134, 171, 247);
 }
-.card:hover{
+.flashcard:hover{
     background-color: aliceblue;
     cursor:pointer;
 }

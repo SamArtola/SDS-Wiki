@@ -92,9 +92,9 @@ def get_flashcards(Backend):
     '''
     cards = set()
     bucket = Backend.storage_client.bucket(Backend.content_bucket)
-    cardblobs = bucket.list_blobs(prefix=Backend.card_prefix)
-
-    for flashcard in cardblobs:
+    cardblobs = list(bucket.list_blobs(prefix=Backend.card_prefix))
+    print(cardblobs)
+    for flashcard in cardblobs[1:]:
         cards.add(flashcard.name.removeprefix(Backend.card_prefix))
 
     return cards

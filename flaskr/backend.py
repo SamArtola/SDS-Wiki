@@ -58,7 +58,6 @@ class Backend:
         # Ibby> Constants should be defined on the file level to make sure that future developers don't change them
         self.bucket_prefix = "users-data/"
         self.card_prefix = "flashcards/"
-        self.site_secret = "siam"
 
     def get_content_bucket(self):
         return self.storage_client.bucket(self.content_bucket)

@@ -170,6 +170,27 @@ def make_endpoints(app):
                                pagename=page,
                                edit_button=edit_button)
 
+    @app.route('/pages/<curpage>', methods=['POST'])
+    def show_wiki_post(curpage):
+        backend = Backend()
+        page = curpage
+        lang = request.form['lang']
+        page_data = backend.get_wiki_page(page, lang=lang)
+
+        if page_data[PAGE_EDITS] and page_data[PAGE_EDITS][-1][
+                EDIT_STATUS] == PENDING:
+            edit_button = False
+        else:
+            edit_button = True
+
+        return render_template('/pages.html',
+                               content=page_data["Content"],
+                               author=page_data["Author"],
+                               image=page_data["Image"],
+                               date=page_data["Date"],
+                               pagename=page,
+                               edit_button=edit_button)
+
     @app.route('/quotes')
     def quotes():
         return render_template('/quotes.html')

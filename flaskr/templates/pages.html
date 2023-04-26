@@ -27,12 +27,14 @@
     </div>
 
     <div style = "padding:40px; font-size:20px;">
-        <label for="lang">Choose a language:</label>
-        <select name="lang" id="lang">
+        <form method="POST">
+            <label for="lang">Choose a language:</label>
+            <select name="lang" id="lang" onchange="this.form.submit()">
             <option value="NULL">Choose a Language</option>
             <option value="EN">English</option>
             <option value="ES">Spanish</option>
         </select>
+        </form>
     </div>
     <div style = "padding:40px; font-size:20px;">
         {{content}}

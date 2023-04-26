@@ -19,7 +19,7 @@ Fun
     {% for card in card_list %}
     <div class="column">
         <form method = "POST" id="current_letter">
-            <li style="list-style-type: none;" class="card" id={{card}} onclick=add_id({id});>     
+            <li style="list-style-type: none;" class="flashcard" id={{card}} onclick=add_id({id});>     
             <h2 id = {{card}} class ="cardletter">{{card}}</h2>
             <label for="current"></label><br>
             <input type="hidden" name="current" value={{curr}} />
